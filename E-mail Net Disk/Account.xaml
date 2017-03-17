@@ -1,0 +1,38 @@
+﻿<Page
+    x:Class="E_mail_Net_Disk.Account"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:E_mail_Net_Disk"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Vertical" Margin="5,0,5,0">
+            <TextBlock Text="邮箱账号设置" FontSize="24" HorizontalAlignment="Center"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="IMAP服务器:" FontSize="24" Grid.Column="0" Grid.Row="0" Margin="5"/>
+                <TextBlock Text="SMTP服务器:" FontSize="24" Grid.Column="0" Grid.Row="1" Margin="5"/>
+                <TextBlock Text="用户名:" FontSize="24" Grid.Column="0" Grid.Row="2" Margin="5"/>
+                <TextBlock Text="密码:" FontSize="24" Grid.Column="0" Grid.Row="3" Margin="5"/>
+                <TextBox Name="ImapTextBox" Grid.Column="1" Grid.Row="0" Margin="5"/>
+                <TextBox Name="SmtpTextBox" Grid.Column="1" Grid.Row="1" Margin="5"/>
+                <TextBox Name="UserTextBox" Grid.Column="1" Grid.Row="2" Margin="5"/>
+                <TextBox Name="PasswordTextBox" Grid.Column="1" Grid.Row="3" Margin="5"/>
+            </Grid>
+            <Button Name="SaveSetting" Content="保存设置" Click="SaveSetting_Click" FontSize="20" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            <TextBlock Text="使用之前请务必先阅读“用法”页面的内容，并按文中所写的步骤准备完毕。" FontSize="24" TextWrapping="Wrap" Margin="0,20,0,0"/>
+            <TextBlock Text="本软件暂时不支持使用SSL加密登陆的服务器。" FontSize="24" TextWrapping="Wrap"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
