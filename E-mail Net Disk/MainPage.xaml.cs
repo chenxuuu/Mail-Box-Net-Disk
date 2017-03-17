@@ -40,6 +40,12 @@ namespace E_mail_Net_Disk
                 RefreshButton.Visibility = Visibility.Visible;
                 Title.Text = "文件";
             }
+            else if (ProgressButton.IsSelected)
+            {
+                MyFrame.Navigate(typeof(ProgressPage));
+                RefreshButton.Visibility = Visibility.Collapsed;
+                Title.Text = "传输进度";
+            }
             else if (AccountButton.IsSelected)
             {
                 MyFrame.Navigate(typeof(Account));

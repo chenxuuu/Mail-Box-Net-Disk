@@ -26,6 +26,12 @@
                             <TextBlock Text="文件" FontSize="24" Margin="20,0,0,0"/>
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem Name="ProgressButton">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8CB;" FontSize="36"/>
+                            <TextBlock Text="进度" FontSize="24" Margin="20,0,0,0"/>
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem Name="AccountButton">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE115;" FontSize="36"/>

@@ -12,6 +12,9 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using E_mail_Net_Disk.Mail;
+using System.Diagnostics;
+
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -27,8 +30,21 @@ namespace E_mail_Net_Disk
             this.InitializeComponent();
         }
 
-        private void SaveSetting_Click(object sender, RoutedEventArgs e)
+        private async void SaveSetting_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                SmtpClient client = new SmtpClient(SmtpTextBox.Text, int.Parse(PortTextBox.Text), UserTextBox.Text,
+                    PasswordTextBox.Password, (bool)SSLCheckBox.IsChecked);
+                SmtpMessage message = new SmtpMessage(UserTextBox.Text,
+                                            "liucx1@qq.com", null, "测试", "内容");
+                await client.SendMail(message);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                throw;
+            }
 
         }
     }

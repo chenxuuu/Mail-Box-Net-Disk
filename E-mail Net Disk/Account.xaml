@@ -20,19 +20,22 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="IMAP服务器:" FontSize="24" Grid.Column="0" Grid.Row="0" Margin="5"/>
-                <TextBlock Text="SMTP服务器:" FontSize="24" Grid.Column="0" Grid.Row="1" Margin="5"/>
-                <TextBlock Text="用户名:" FontSize="24" Grid.Column="0" Grid.Row="2" Margin="5"/>
-                <TextBlock Text="密码:" FontSize="24" Grid.Column="0" Grid.Row="3" Margin="5"/>
-                <TextBox Name="ImapTextBox" Grid.Column="1" Grid.Row="0" Margin="5"/>
-                <TextBox Name="SmtpTextBox" Grid.Column="1" Grid.Row="1" Margin="5"/>
-                <TextBox Name="UserTextBox" Grid.Column="1" Grid.Row="2" Margin="5"/>
-                <TextBox Name="PasswordTextBox" Grid.Column="1" Grid.Row="3" Margin="5"/>
+                <TextBlock Text="IMAP服务器:" FontSize="24" Grid.Column="0" Grid.Row="0" Margin="0,10,0,0"/>
+                <TextBlock Text="SMTP服务器:" FontSize="24" Grid.Column="0" Grid.Row="1" Margin="0,10,0,0"/>
+                <TextBlock Text="SMTP服务器:" FontSize="24" Grid.Column="0" Grid.Row="2" Margin="0,10,0,0"/>
+                <TextBlock Text="用户名:" FontSize="24" Grid.Column="0" Grid.Row="3" Margin="0,10,0,0"/>
+                <TextBlock Text="密码:" FontSize="24" Grid.Column="0" Grid.Row="4" Margin="0,10,0,0"/>
+                <TextBox Name="ImapTextBox" PlaceholderText="比如：imap.qq.com" FontSize="24" Grid.Column="1" Grid.Row="0" Margin="5,5,20,5"/>
+                <TextBox Name="SmtpTextBox" PlaceholderText="比如：smtp.qq.com" FontSize="24" Grid.Column="1" Grid.Row="1" Margin="5,5,20,5"/>
+                <TextBox Name="PortTextBox" PlaceholderText="无SSL默认587，SSL默认465" FontSize="24" Grid.Column="1" Grid.Row="2" Margin="5,5,20,5"/>
+                <TextBox Name="UserTextBox" PlaceholderText="比如：123456@qq.com" FontSize="24" Grid.Column="1" Grid.Row="3" Margin="5,5,20,5"/>
+                <PasswordBox Name="PasswordTextBox" PlaceholderText="QQ邮箱请输入授权码" FontSize="24" Grid.Column="1" Grid.Row="4" Margin="5,5,20,5"/>
             </Grid>
+            <CheckBox Name="SSLCheckBox" Content="开启SSL进行通信（部分服务器必须）" FontSize="24" HorizontalAlignment="Center"/>
             <Button Name="SaveSetting" Content="保存设置" Click="SaveSetting_Click" FontSize="20" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-            <TextBlock Text="使用之前请务必先阅读“用法”页面的内容，并按文中所写的步骤准备完毕。" FontSize="24" TextWrapping="Wrap" Margin="0,20,0,0"/>
-            <TextBlock Text="本软件暂时不支持使用SSL加密登陆的服务器。" FontSize="24" TextWrapping="Wrap"/>
+            <TextBlock Text="使用之前请务必先阅读用法页面的内容，并按文中所写的步骤准备完毕。" FontSize="24" TextWrapping="Wrap" Margin="0,20,0,0"/>
         </StackPanel>
     </ScrollViewer>
 </Page>
