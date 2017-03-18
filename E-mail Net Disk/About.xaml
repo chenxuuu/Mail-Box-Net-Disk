@@ -16,6 +16,7 @@
             <TextBlock Text="制作者：晨旭" FontSize="20" HorizontalAlignment="center" TextWrapping = "Wrap" Margin="20,20,20,0"/>
             <TextBlock Text="网站：chenxublog.com" FontSize="20" HorizontalAlignment="center" TextWrapping = "Wrap" Margin="20,0,20,0"/>
             <Button Content="反馈意见" Click="Button_Click" FontSize="20" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            <TextBlock Text="本软件使用了MailKit的开源库。" FontSize="20" HorizontalAlignment="center" TextWrapping = "Wrap" Margin="20,20,20,0"/>
         </StackPanel>
     </ScrollViewer>
 </Page>

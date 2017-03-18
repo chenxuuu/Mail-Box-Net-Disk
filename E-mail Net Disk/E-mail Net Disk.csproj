@@ -105,12 +105,6 @@
     <Compile Include="Files.xaml.cs">
       <DependentUpon>Files.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mail\SmtpClient.cs" />
-    <Compile Include="Mail\SmtpCode.cs" />
-    <Compile Include="Mail\SmtpMessage.cs" />
-    <Compile Include="Mail\SmtpPriority.cs" />
-    <Compile Include="Mail\SmtpResponse.cs" />
-    <Compile Include="Mail\SmtpSocket.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

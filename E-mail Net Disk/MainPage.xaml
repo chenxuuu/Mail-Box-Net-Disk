@@ -14,6 +14,7 @@
         </Grid.RowDefinitions>
         <RelativePanel Grid.Row="0" Background="LightGray">
             <Button Name="MenuButton" FontFamily="Segoe MDL2 Assets" Content="&#xE700;" FontSize="36" Click="MenuButton_Click"/>
+            <Button Name="UploadButton" FontFamily="Segoe MDL2 Assets" Content="&#xE710;" FontSize="36" Click="UploadButton_Click" Margin="5,0,5,0" Visibility="Collapsed" RelativePanel.RightOf="MenuButton"/>
             <TextBlock Name="Title" FontSize="36" Text="邮箱网盘" RelativePanel.AlignHorizontalCenterWithPanel="True"/>
             <Button Name="RefreshButton" FontFamily="Segoe MDL2 Assets" Content="&#xE117;" FontSize="36" Click="RefreshButton_Click" Visibility="Collapsed" RelativePanel.AlignRightWithPanel="True"/>
         </RelativePanel>

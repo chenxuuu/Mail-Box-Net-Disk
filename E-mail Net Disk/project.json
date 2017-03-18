@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "MailKit": "1.12.0",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
   },
   "frameworks": {

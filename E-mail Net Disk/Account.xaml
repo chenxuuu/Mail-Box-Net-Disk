@@ -36,6 +36,7 @@
             <CheckBox Name="SSLCheckBox" Content="开启SSL进行通信（部分服务器必须）" FontSize="24" HorizontalAlignment="Center"/>
             <Button Name="SaveSetting" Content="保存设置" Click="SaveSetting_Click" FontSize="20" HorizontalAlignment="Center" Margin="0,5,0,0"/>
             <TextBlock Text="使用之前请务必先阅读用法页面的内容，并按文中所写的步骤准备完毕。" FontSize="24" TextWrapping="Wrap" Margin="0,20,0,0"/>
+            <TextBlock Name="DebugTextBlock" Text="" FontSize="24" TextWrapping="Wrap" Margin="0,20,0,0"/>
         </StackPanel>
     </ScrollViewer>
 </Page>
