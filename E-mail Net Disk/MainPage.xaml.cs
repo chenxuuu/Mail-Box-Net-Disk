@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -40,6 +44,7 @@ namespace E_mail_Net_Disk
                 MyFrame.Navigate(typeof(Files));
                 RefreshButton.Visibility = Visibility.Visible;
                 UploadButton.Visibility = Visibility.Visible;
+                SearchButton.Visibility = Visibility.Visible;
                 Title.Text = "文件";
             }
             else if (ProgressButton.IsSelected)
@@ -47,6 +52,7 @@ namespace E_mail_Net_Disk
                 MyFrame.Navigate(typeof(ProgressPage));
                 RefreshButton.Visibility = Visibility.Collapsed;
                 UploadButton.Visibility = Visibility.Collapsed;
+                SearchButton.Visibility = Visibility.Collapsed;
                 Title.Text = "传输进度";
             }
             else if (AccountButton.IsSelected)
@@ -54,6 +60,7 @@ namespace E_mail_Net_Disk
                 MyFrame.Navigate(typeof(Account));
                 RefreshButton.Visibility = Visibility.Collapsed;
                 UploadButton.Visibility = Visibility.Collapsed;
+                SearchButton.Visibility = Visibility.Collapsed;
                 Title.Text = "账号设置";
 
             }
@@ -62,6 +69,7 @@ namespace E_mail_Net_Disk
                 MyFrame.Navigate(typeof(Notice));
                 RefreshButton.Visibility = Visibility.Collapsed;
                 UploadButton.Visibility = Visibility.Collapsed;
+                SearchButton.Visibility = Visibility.Collapsed;
                 Title.Text = "用法";
             }
             else if (AboutButton.IsSelected)
@@ -69,6 +77,7 @@ namespace E_mail_Net_Disk
                 MyFrame.Navigate(typeof(About));
                 RefreshButton.Visibility = Visibility.Collapsed;
                 UploadButton.Visibility = Visibility.Collapsed;
+                SearchButton.Visibility = Visibility.Collapsed;
                 Title.Text = "关于";
             }
         }
@@ -78,9 +87,39 @@ namespace E_mail_Net_Disk
 
         }
 
-        private void UploadButton_Click(object sender, RoutedEventArgs e)
+        private async void UploadButton_Click(object sender, RoutedEventArgs e)
         {
+            FileOpenPicker openFile = new FileOpenPicker();
+            openFile.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            openFile.ViewMode = PickerViewMode.List;
+            openFile.FileTypeFilter.Add("*");
 
+            // 选取单个文件
+            StorageFile file = await openFile.PickSingleFileAsync();
+
+            ShowMessageDialog(file.Name, "debug");
+
+            Windows.Storage.FileProperties.BasicProperties basicProperties = await file.GetBasicPropertiesAsync();
+            //string fileSize = string.Format("{0:n0}", basicProperties.Size);
+            ShowMessageDialog(basicProperties.Size.ToString(), "debug");
+
+            //ShowMessageDialog(file.DateCreated.ToString(), "debug");
+            //if (file != null)
+            //{
+            //    tBlockOpenInfo.Text = "你所选择的文件是： " + file.Name;
+            //}
+            //else
+            //{
+            //    tBlockOpenInfo.Text = "打开文件操作被取消。";
+            //}
+        }
+
+
+        private async void ShowMessageDialog(string s, string title)
+        {
+            var msgDialog = new Windows.UI.Popups.MessageDialog(s) { Title = title };
+            msgDialog.Commands.Add(new Windows.UI.Popups.UICommand("确定"));
+            await msgDialog.ShowAsync();
         }
     }
 }
