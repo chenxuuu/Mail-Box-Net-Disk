@@ -43,6 +43,13 @@ namespace E_mail_Net_Disk
             await settings.GetSettings();
         }
 
+        private async void ShowMessageDialog(string s, string title)
+        {
+            var msgDialog = new Windows.UI.Popups.MessageDialog(s) { Title = title };
+            msgDialog.Commands.Add(new Windows.UI.Popups.UICommand("确定"));
+            await msgDialog.ShowAsync();
+        }
+
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             await FileManager.GetFilesLocal(NetFiles);
@@ -73,9 +80,20 @@ namespace E_mail_Net_Disk
                     FileSize = filesize,
                     FileDateCreated = filedata
                 });
-                await FileManager.UploadFiles(file);
+                try
+                {
+                    UploadProgressRing.Visibility = Visibility.Visible;
+                    UploadTextBlock.Visibility = Visibility.Visible;
+                    await FileManager.UploadFiles(file);
+                }
+                catch
+                {
+                    ShowMessageDialog("上传过程中出现错误！请检查邮箱账号设置！", "提示");
+                }
 
                 await FileManager.SaveSettings(NetFiles);
+                UploadProgressRing.Visibility = Visibility.Collapsed;
+                UploadTextBlock.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -85,7 +103,7 @@ namespace E_mail_Net_Disk
             int resultsum = 2;
             var dialog = new MessageDialog(string.Format("{0}\r\n请选择你要进行的动作：",filename), "消息提示");
 
-            dialog.Commands.Add(new UICommand("下载", cmd => { resultsum = 0; }, commandId: 0));
+            dialog.Commands.Add(new UICommand("下载（没开发）", cmd => { resultsum = 0; }, commandId: 0));
             dialog.Commands.Add(new UICommand("删除", cmd => { resultsum = 1; }, commandId: 1));
             dialog.Commands.Add(new UICommand("取消", cmd => { resultsum = 2; }, commandId: 2));
 

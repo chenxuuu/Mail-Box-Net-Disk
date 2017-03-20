@@ -21,7 +21,7 @@ namespace E_mail_Net_Disk
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("File Uploader", settings.UserName));
             message.To.Add(new MailboxAddress(settings.UserName, settings.UserName));
-            message.Subject = "mailbox net disk file:" + hash;
+            message.Subject = "mailbox net disk file:" + hash + "File name:" + file.Name;
 
             StorageFolder folder = ApplicationData.Current.TemporaryFolder;
             StorageFile newfile = await file.CopyAsync(folder, file.Name, NameCollisionOption.GenerateUniqueName);

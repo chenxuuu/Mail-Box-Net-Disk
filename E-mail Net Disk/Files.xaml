@@ -10,7 +10,8 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Orientation="Vertical">
             <RelativePanel>
-                <TextBlock Name="DebugTextBlock" Text="DEBUG" RelativePanel.AlignHorizontalCenterWithPanel="True"/>
+                <TextBlock Name="UploadTextBlock" Text="上传中。。。" Visibility="Collapsed" RelativePanel.AlignHorizontalCenterWithPanel="True"/>
+                <ProgressRing Name="UploadProgressRing" IsActive="True" Visibility="Collapsed" RelativePanel.RightOf="UploadTextBlock"/>
                 <Button Name="RefreshButton" FontFamily="Segoe MDL2 Assets" Content="&#xE117;" FontSize="24" Click="RefreshButton_Click" RelativePanel.AlignRightWithPanel="True"/>
                 <Button Name="SearchButton" FontFamily="Segoe MDL2 Assets" Content="&#xE11A;" FontSize="24" Click="SearchButton_Click" Margin="5,0,5,0" RelativePanel.LeftOf="RefreshButton"/>
                 <Button Name="UploadButton" FontFamily="Segoe MDL2 Assets" Content="&#xE710;" FontSize="24" Click="UploadButton_Click" Margin="5,0,5,0" RelativePanel.AlignLeftWithPanel="True"/>

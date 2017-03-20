@@ -53,13 +53,16 @@ namespace E_mail_Net_Disk
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
-            await settings.GetSettings();
-            ImapTextBox.Text = settings.ImapURL;
-            SmtpTextBox.Text = settings.SmtpURL;
-            PortTextBox.Text = settings.PortNumber.ToString();
-            UserTextBox.Text = settings.UserName;
-            PasswordTextBox.Password = settings.Password;
-            SSLCheckBox.IsChecked = settings.IsSSL;
+            try
+            {
+                await settings.GetSettings();
+                ImapTextBox.Text = settings.ImapURL;
+                SmtpTextBox.Text = settings.SmtpURL;
+                PortTextBox.Text = settings.PortNumber.ToString();
+                UserTextBox.Text = settings.UserName;
+                PasswordTextBox.Password = settings.Password;
+                SSLCheckBox.IsChecked = settings.IsSSL;
+            }catch { }
         }
 
         private async void ShowMessageDialog(string s,string title)
