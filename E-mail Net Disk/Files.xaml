@@ -5,9 +5,42 @@
     xmlns:local="using:E_mail_Net_Disk"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:data="using:E_mail_Net_Disk.Models"
     mc:Ignorable="d">
-
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        
+        <StackPanel Orientation="Vertical">
+            <RelativePanel>
+                <TextBlock Name="DebugTextBlock" Text="DEBUG" RelativePanel.AlignHorizontalCenterWithPanel="True"/>
+                <Button Name="RefreshButton" FontFamily="Segoe MDL2 Assets" Content="&#xE117;" FontSize="24" Click="RefreshButton_Click" RelativePanel.AlignRightWithPanel="True"/>
+                <Button Name="SearchButton" FontFamily="Segoe MDL2 Assets" Content="&#xE11A;" FontSize="24" Click="SearchButton_Click" Margin="5,0,5,0" RelativePanel.LeftOf="RefreshButton"/>
+                <Button Name="UploadButton" FontFamily="Segoe MDL2 Assets" Content="&#xE710;" FontSize="24" Click="UploadButton_Click" Margin="5,0,5,0" RelativePanel.AlignLeftWithPanel="True"/>
+            </RelativePanel>
+            <GridView ItemsSource="{x:Bind NetFiles}" IsItemClickEnabled="True" ItemClick="GridView_ItemClick">
+                <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="data:NetFileItem">
+                        <Grid Width="200">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <TextBlock Text="文件名："/>
+                                <TextBlock Text="{x:Bind FileName}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                                <TextBlock Text="上传时间："/>
+                                <TextBlock Text="{x:Bind FileDateCreated}" RelativePanel.RightOf="UploadTimeText" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                                <TextBlock Text="文件大小："/>
+                                <TextBlock Text="{x:Bind FileSize}" TextWrapping="Wrap"/>
+                                <!--<TextBlock Text="字节"/>-->
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+        </StackPanel>
     </ScrollViewer>
 </Page>

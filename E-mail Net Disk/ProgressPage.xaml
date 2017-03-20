@@ -8,6 +8,9 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical">
+            <TextBlock FontSize="20" Text="开发中" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
+            <TextBlock FontSize="20" Text="别看了，空的" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
+        </StackPanel>
     </Grid>
 </Page>

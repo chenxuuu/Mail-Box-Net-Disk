@@ -13,43 +13,40 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <RelativePanel Grid.Row="0" Background="LightGray">
-            <Button Name="MenuButton" FontFamily="Segoe MDL2 Assets" Content="&#xE700;" FontSize="36" Click="MenuButton_Click"/>
-            <Button Name="UploadButton" FontFamily="Segoe MDL2 Assets" Content="&#xE710;" FontSize="36" Click="UploadButton_Click" Margin="5,0,5,0" Visibility="Collapsed" RelativePanel.RightOf="MenuButton"/>
-            <TextBlock Name="Title" FontSize="36" Text="邮箱网盘" RelativePanel.AlignHorizontalCenterWithPanel="True"/>
-            <Button Name="SearchButton" FontFamily="Segoe MDL2 Assets" Content="&#xE11A;" FontSize="36" Click="RefreshButton_Click" Margin="5,0,5,0" Visibility="Collapsed" RelativePanel.LeftOf="RefreshButton"/>
-            <Button Name="RefreshButton" FontFamily="Segoe MDL2 Assets" Content="&#xE117;" FontSize="36" Click="RefreshButton_Click" Visibility="Collapsed" RelativePanel.AlignRightWithPanel="True"/>
+            <Button Name="MenuButton" FontFamily="Segoe MDL2 Assets" Content="&#xE700;" FontSize="24" Click="MenuButton_Click"/>
+            <TextBlock Name="Title" FontSize="24" Text="邮箱网盘" RelativePanel.AlignHorizontalCenterWithPanel="True"/>
         </RelativePanel>
-        <SplitView Name="MySplitView" Grid.Row="1" DisplayMode="CompactOverlay" OpenPaneLength="140" CompactPaneLength="56" HorizontalContentAlignment="left">
+        <SplitView Name="MySplitView" Grid.Row="1" DisplayMode="CompactOverlay" OpenPaneLength="130" CompactPaneLength="44" HorizontalContentAlignment="left">
             <SplitView.Pane>
                 <ListBox SelectionMode="Single" Name="IconListBox" SelectionChanged="IconListBox_SelectionChanged">
                     <ListBoxItem Name="FilesButton">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE729;" FontSize="36"/>
-                            <TextBlock Text="文件" FontSize="24" Margin="20,0,0,0"/>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE729;" FontSize="24" Margin="0,4,5,0"/>
+                            <TextBlock Text="文件" FontSize="20" Margin="20,0,0,0"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Name="ProgressButton">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8CB;" FontSize="36"/>
-                            <TextBlock Text="进度" FontSize="24" Margin="20,0,0,0"/>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8CB;" FontSize="24" Margin="0,4,5,0"/>
+                            <TextBlock Text="进度" FontSize="20" Margin="20,0,0,0"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Name="AccountButton">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE115;" FontSize="36"/>
-                            <TextBlock Text="设置" FontSize="24" Margin="20,0,0,0"/>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE115;" FontSize="24" Margin="0,4,5,0"/>
+                            <TextBlock Text="设置" FontSize="20" Margin="20,0,0,0"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Name="NoticeButton">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE171;" FontSize="36"/>
-                            <TextBlock Text="用法" FontSize="24" Margin="20,0,0,0"/>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE171;" FontSize="24" Margin="0,4,5,0"/>
+                            <TextBlock Text="用法" FontSize="20" Margin="20,0,0,0"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Name="AboutButton">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE11B;" FontSize="36"/>
-                            <TextBlock Text="关于" FontSize="24" Margin="20,0,0,0"/>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE11B;" FontSize="24" Margin="0,4,5,0"/>
+                            <TextBlock Text="关于" FontSize="20" Margin="20,0,0,0"/>
                         </StackPanel>
                     </ListBoxItem>
                 </ListBox>
@@ -57,9 +54,9 @@
             <SplitView.Content>
                 <Frame Name="MyFrame">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical">
-                        <TextBlock FontSize="24" Text="欢迎使用该软件" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
-                        <TextBlock FontSize="24" Text="这里是一个简陋的启动界面" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
-                        <TextBlock FontSize="24" Text="第一次使用请看“用法”菜单里的内容" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
+                        <TextBlock FontSize="20" Text="欢迎使用该软件" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
+                        <TextBlock FontSize="20" Text="这里是一个简陋的启动界面" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
+                        <TextBlock FontSize="20" Text="第一次使用请看“用法”菜单里的内容" HorizontalAlignment="Center" Foreground="#FFC9C9C9"/>
                     </StackPanel>
                 </Frame>
             </SplitView.Content>
