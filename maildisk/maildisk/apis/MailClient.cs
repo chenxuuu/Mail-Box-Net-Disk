@@ -1,5 +1,6 @@
 ﻿using MailKit;
 using MailKit.Net.Imap;
+using MailKit.Search;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -73,5 +74,25 @@ namespace maildisk.apis
         {
             return client.GetFolder(path);
         }
+
+
+        /// <summary>
+        /// get not read mails, and mark as seen
+        /// </summary>
+        /// <returns>mails' IMessageSummary</returns>
+        public IList<IMessageSummary> GetNotSeen()
+        {
+            ArrayList mails = new ArrayList();
+            var inbox = client.Inbox;
+            inbox.Open(FolderAccess.ReadWrite);
+            var uids = inbox.Search(SearchQuery.NotSeen);
+            inbox.AddFlags(uids, MessageFlags.Seen, true);
+#if DEBUG
+            Console.WriteLine($"[GetNotSeen] mails count {uids.Count}");
+#endif
+            return inbox.Fetch(uids,
+                    MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+        }
+
     }
 }
