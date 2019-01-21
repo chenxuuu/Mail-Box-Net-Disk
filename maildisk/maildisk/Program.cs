@@ -13,15 +13,24 @@ namespace maildisk
             foreach (var i in args)
                 Console.WriteLine(i);
 
-            var mail = new MailClient("imap.qq.com", 993, true,
+            var disk = new VisualDisk("imap.qq.com", 993, true,
                 "lolicon@papapoi.com", "lsykvlybakgkbfda",
-                "lolicon@papapoi.com");
+                "lolicon@papapoi.com",
+                "smtp.qq.com", 465, true);
+
+            Console.WriteLine(disk.Download("其他文件夹/test", "test.file",  "docs[09D11692].7z.001"));
+
+
+
+            //var mail = new MailClient("imap.qq.com", 993, true,
+            //    "lolicon@papapoi.com", "lsykvlybakgkbfda",
+            //    "lolicon@papapoi.com");
 
             //var folder = mail.GetFolder("其他文件夹/se");
-            foreach(var m in mail.GetNotSeen())
-            {
-                Console.WriteLine(m.Envelope.Subject);
-            }
+            //foreach (var m in mail.GetNotSeen())
+            //{
+            //    Console.WriteLine(m.Envelope.Subject);
+            //}
 
 
             using (var client = new ImapClient())
