@@ -3,6 +3,7 @@ using MailKit.Net.Imap;
 using MailKit.Search;
 using System;
 using maildisk.apis;
+using System.IO;
 
 namespace maildisk
 {
@@ -14,12 +15,14 @@ namespace maildisk
                 Console.WriteLine(i);
 
             var disk = new VisualDisk("imap.qq.com", 993, true,
-                "lolicon@papapoi.com", "lsykvlybakgkbfda",
+                "961726194@qq.com", "",
                 "lolicon@papapoi.com",
                 "smtp.qq.com", 465, true);
 
-            Console.WriteLine(disk.Download("其他文件夹/test", "test.file",  "docs[09D11692].7z.001"));
-
+            Console.WriteLine(disk.UploadBigFile("测试文件.mp4", 
+                "其他文件夹/test",
+                @"C:\Users\chenx\OneDrive\others\for_share\H\sf\a\[桜都字幕组][720P][メリー･ジェーン]小女ラムネ第4話みんなの夏休み.mp4",
+                1000 * 1000 * 50));
 
 
             //var mail = new MailClient("imap.qq.com", 993, true,

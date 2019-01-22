@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace maildisk.apis
 {
@@ -60,10 +62,10 @@ namespace maildisk.apis
         /// <param name="folderPath">folder on email</param>
         /// <param name="filePath">local file path</param>
         /// <returns>file upload success or not</returns>
-        public bool Upload(string fileName, string folderPath, string filePath)
+        public bool Upload(string fileName, string folderPath, Stream file)
         {
 #if DEBUG
-            Console.WriteLine($"[disk upload]{fileName},{folderPath},{filePath}");
+            Console.WriteLine($"[disk upload]{fileName},{folderPath},{file.Length}");
 #endif
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("mail disk", address));
@@ -78,7 +80,7 @@ namespace maildisk.apis
             
             var attachment = new MimePart()
             {
-                Content = new MimeContent(File.OpenRead(filePath), ContentEncoding.Default),
+                Content = new MimeContent(file, ContentEncoding.Default),
                 ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
                 ContentTransferEncoding = ContentEncoding.Base64,
                 FileName = "attachment.netdiskfile"
@@ -100,15 +102,21 @@ namespace maildisk.apis
 #if DEBUG
             Console.WriteLine($"[disk upload]upload success");
 #endif
-            bool result = false;
+            Task.Run(() => CheckFile(fileName, folderPath));
+            return true;
+        }
+
+
+        private void CheckFile(string fileName, string folderPath)
+        {
             int retryCount = 0;
 
-            while(!result && retryCount <= 30)
+            while (retryCount <= 30)
             {
 #if DEBUG
-                Console.WriteLine($"[disk upload]check mail {retryCount} times");
+                Console.WriteLine($"[disk CheckFile]check mail {retryCount} times, {fileName}");
 #endif
-                System.Threading.Tasks.Task.Delay(5000).Wait();
+                Task.Delay(5000).Wait();
                 var client = GetImapClient();
                 var inbox = client.Inbox;
                 inbox.Open(FolderAccess.ReadWrite);
@@ -116,21 +124,22 @@ namespace maildisk.apis
                 foreach (var m in inbox.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
                 {
 #if DEBUG
-                    Console.WriteLine($"[disk upload]mail not seen {m.Envelope.Subject}");
+                    Console.WriteLine($"[disk CheckFile]mail not seen {m.Envelope.Subject}");
 #endif
                     if (m.Envelope.Subject == "[mailDisk]" + fileName)
                     {
-                        result = true;
                         inbox.AddFlags(m.UniqueId, MessageFlags.Seen, true);
                         inbox.MoveTo(m.UniqueId, client.GetFolder(folderPath));
+#if DEBUG
+                        Console.WriteLine($"[disk CheckFile]file {fileName} moved ok!");
+#endif
                         break;
                     }
                 }
                 client.Disconnect(true);
                 retryCount++;
             }
-            
-            return result;
+
         }
 
 
@@ -141,7 +150,7 @@ namespace maildisk.apis
         /// <param name="fileName">file name on cloud disk</param>
         /// <param name="savePath">local file path</param>
         /// <returns>file download success or not</returns>
-        public bool Download(string folderPath, string fileName,string savePath)
+        public bool Download(string fileName, string folderPath, string savePath)
         {
 #if DEBUG
             Console.WriteLine($"[disk download]{folderPath},{fileName},{savePath}");
@@ -181,6 +190,48 @@ namespace maildisk.apis
 
 
             return true;
+        }
+
+
+        public bool UploadBigFile(string fileName, string folderPath, string filePath, int blockSize)
+        {
+            FileInfo fileInfo = new FileInfo(filePath);
+            if (fileInfo.Length > blockSize)
+            {
+#if DEBUG
+                Console.WriteLine($"[disk Upload]file need to be splited");
+#endif
+                var steps = (int)Math.Ceiling((double)fileInfo.Length / blockSize);
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (BinaryReader br = new BinaryReader(fs))
+                    {
+                        int couter = 1;
+                        bool isReadingComplete = false;
+                        while (!isReadingComplete)
+                        {
+                            string tempName = couter.ToString();
+
+                            byte[] bytes = br.ReadBytes(blockSize);
+                            Stream stream = new MemoryStream(bytes);
+
+                            if (!Upload(fileName+$"<{couter}/{steps}>", folderPath, stream))
+                                return false;
+
+                            isReadingComplete = (bytes.Length != blockSize);
+                            if (!isReadingComplete)
+                            {
+                                couter += 1;
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                return Upload(fileName, folderPath, File.OpenRead(filePath));
+            }
         }
 
     }
