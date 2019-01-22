@@ -1,0 +1,7 @@
+language: csharp
+mono: none
+dotnet: 2.1.502
+script:
+  - cd maildisk
+  - dotnet build --runtime ubuntu.14.04-x64
+
