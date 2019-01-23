@@ -11,75 +11,68 @@ namespace maildisk
     {
         static void Main(string[] args)
         {
-            foreach (var i in args)
-                Console.WriteLine(i);
-
-            var disk = new VisualDisk("imap.qq.com", 993, true,
-                "lolicon@papapoi.com", "",
-                "lolicon@papapoi.com",
-                "smtp.qq.com", 465, true);
-
-            Console.WriteLine(disk.UploadBigFile("Ubuntu 64 位-s004.vmdk",
-                "其他文件夹/test",
-                @"D:\ubuntu\Ubuntu 64 位-s004.vmdk",
-                1000 * 1000 * 36));
-
-
-            //var mail = new MailClient("imap.qq.com", 993, true,
-            //    "lolicon@papapoi.com", "lsykvlybakgkbfda",
-            //    "lolicon@papapoi.com");
-
-            //var folder = mail.GetFolder("其他文件夹/se");
-            //foreach (var m in mail.GetNotSeen())
-            //{
-            //    Console.WriteLine(m.Envelope.Subject);
-            //}
-
-
-            using (var client = new ImapClient())
+            if(args.Length > 0)
+            switch(args[0])
             {
-                //// For demo-purposes, accept all SSL certificates
-                //client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                case "-h":
+                        Console.WriteLine(@"
+***********
+*Mail Disk*
+***********
+You can use these commands:
 
-                //client.Connect("imap.qq.com", 993, true);
+-h: 
+show commands we support.
 
-                //client.Authenticate("lolicon@papapoi.com", "lsykvlybakgkbfda");
+-s:
+set your imap settings.
 
-                //// The Inbox folder is always available on all IMAP servers...
-                //var inbox = client.GetFolder("其他文件夹/test");
-                //inbox.Open(FolderAccess.ReadOnly);
+-lf:
+list all folders on mail server.
 
-                //Console.WriteLine("Total messages: {0}", inbox.Count);
-                ////Console.WriteLine("Recent messages: {0}", inbox.Recent);
+-cf <folder name>:
+create new folder on mail server.
 
-                //var uids = inbox.Search(SearchQuery.SubjectContains("10"));
+-l <email folder>:
+show files in this folder.
 
-                //foreach (var summary in inbox.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
-                //{
-                //    Console.WriteLine("[summary] {0:D2}: {1}", summary.Index, summary.Envelope.Subject);
-                //}
+-u <email folder> <local file path>:
+upload a file to net disk.
 
-                //for (int i = 0; i < inbox.Count; i++)
-                //{
-                //    var message = inbox.GetMessage(i);
-                //    Console.WriteLine("Subject: {0}", message.Subject);
-                //}
+-d <email folder> <file name>:
+download a file from net disk.".Replace("\r\n","\r\n\t"));
+                        return;
 
-                //for (int i = 0; i < inbox.Count; i += 100)
-                //{
-                //    foreach (var summary in inbox.Fetch(i, i + 100, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
-                //    {
-                //        Console.WriteLine("[summary] {0:D2}: {1}", summary.Index, summary.Envelope.Subject);
-                //    }
-                //}
+                    case "-s":
+                        Settings.Set();
+                        return;
 
+                    case "-lf":
+                        var lfdisk = Settings.GetDisk();
+                        if (lfdisk == null) return;
+                        Console.WriteLine("getting all folders");
+                        var all = lfdisk.GetFolders();
+                        Console.WriteLine("here's all folders:");
+                        foreach(var f in all)
+                        {
+                            Console.WriteLine(f.FullName);
+                        }
+                        return;
 
+                    case "-cf":
+                        var cfdisk = Settings.GetDisk();
+                        if (cfdisk == null) return;
+                        if(args.Length < 2) { Console.WriteLine("please enter a folder name");return; }
+                        Console.WriteLine("creating folder:" + args[1]);
+                        cfdisk.CreatFolder(args[1]);
+                        return;
 
-                //client.Disconnect(true);
+                    default:
+                        break;
             }
-
-            Console.WriteLine("end!");
-            Console.ReadLine();
+            Console.WriteLine(@"no commond matched
+use -h to show commands we support");
+            return;
         }
     }
 }

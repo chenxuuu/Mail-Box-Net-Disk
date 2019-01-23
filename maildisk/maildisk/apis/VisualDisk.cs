@@ -4,6 +4,7 @@ using MailKit.Net.Smtp;
 using MailKit.Search;
 using MimeKit;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -20,13 +21,9 @@ namespace maildisk.apis
         private string imapServer;
         private int imapPort;
         private bool imapSsl;
-        private string smtpServer;
-        private int smtpPort;
-        private bool smtpSsl;
         private string lastFolder;
 
-        public VisualDisk(string imapServer, int port, bool useSsl, string account, string password, string address,
-            string smtpServer,int smtpPort, bool smtpSsl)
+        public VisualDisk(string imapServer, int port, bool useSsl, string account, string password, string address)
         {
             this.imapServer = imapServer;
             this.imapPort = port;
@@ -34,13 +31,6 @@ namespace maildisk.apis
             this.address = address;
             this.account = account;
             this.password = password;
-            this.smtpServer = smtpServer;
-            this.smtpPort = smtpPort;
-            this.smtpSsl = smtpSsl;
-#if DEBUG
-            Console.WriteLine($"[disk create]mail client created, on {imapServer}:{port}" +
-                $", ssl:{useSsl}, {account}, {address},{smtpServer},{smtpPort},{smtpSsl}");
-#endif
             //auto mark as seen task
             Task.Run(() => {
                 while(true)
@@ -52,7 +42,12 @@ namespace maildisk.apis
                         f.Open(FolderAccess.ReadWrite);
                         var uids = f.Search(SearchQuery.NotSeen);
                         foreach (var u in uids)
+                        {
                             f.AddFlags(u, MessageFlags.Seen, true);
+#if DEBUG
+                            Console.WriteLine($"[disk check]add a seen flag");
+#endif
+                        }
                         client.Disconnect(true);
                     }
                     Task.Delay(30 * 1000).Wait();
@@ -64,7 +59,7 @@ namespace maildisk.apis
         /// get a imap client
         /// </summary>
         /// <returns>imap client</returns>
-        private ImapClient GetImapClient()
+        public ImapClient GetImapClient()
         {
             ImapClient client = new ImapClient();
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
@@ -259,5 +254,52 @@ namespace maildisk.apis
             }
         }
 
+
+        /// <summary>
+        /// get all folders in this mail
+        /// </summary>
+        /// <param name="path">path, default is empty</param>
+        /// <returns>folder list</returns>
+        public IMailFolder[] GetFolders(string path = "")
+        {
+            ArrayList folders = new ArrayList();
+
+            var personal = GetImapClient().GetFolder(path);
+
+            foreach (var folder in personal.GetSubfolders(false))
+            {
+                if (folder.GetSubfolders(false).Count > 0)
+                {
+                    folders.AddRange(GetFolders(folder.FullName));
+                }
+                else
+                {
+                    folders.Add(folder);
+                }
+            }
+            return (IMailFolder[])folders.ToArray(typeof(IMailFolder));
+        }
+
+
+        /// <summary>
+        /// create a folder
+        /// </summary>
+        /// <param name="path">folder name and path</param>
+        /// <returns>result</returns>
+        public void CreatFolder(string path)
+        {
+            try
+            {
+                if (path.IndexOf("/") == -1) throw new Exception("only can create sub folder!");
+                var client = GetImapClient();
+                var s = path.Split("/");
+                client.GetFolder(s[0]).Create(s[1], true);
+                Console.WriteLine($"[create folder]folder {path} created");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("[create folder]error:" + e.Message);
+            }
+        }
     }
 }
