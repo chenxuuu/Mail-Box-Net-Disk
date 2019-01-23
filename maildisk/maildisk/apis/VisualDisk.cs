@@ -52,6 +52,16 @@ namespace maildisk.apis
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
             client.Connect(imapServer, imapPort, imapSsl);
             client.Authenticate(account, password);
+            //判断是否 添加ID COMMOND命令
+            if ((client.Capabilities | ImapCapabilities.Id) == client.Capabilities)
+            {
+                var clientImplementation = new ImapImplementation
+                {
+                    Name = "Foxmail",
+                    Version = "9.156"
+                };
+                var serverImplementation = client.Identify(clientImplementation);
+            }
             return client;
         }
 
@@ -67,9 +77,10 @@ namespace maildisk.apis
 #if DEBUG
             Console.WriteLine($"[disk upload]{fileName},{folderPath},{file.Length}");
 #endif
+            var client = GetImapClient();
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("mail disk", address));
-            message.To.Add(new MailboxAddress("mail disk", address));
+            message.From.Add(new MailboxAddress(address));
+            message.To.Add(new MailboxAddress(address));
             message.Subject = "[mailDisk]" + fileName;
             var body = new TextPart("plain")
             {
@@ -90,58 +101,25 @@ namespace maildisk.apis
             multipart.Add(body);
             multipart.Add(attachment);
             message.Body = multipart;
+#if DEBUG
+            Console.WriteLine("[disk upload]appending...");
+#endif
+            var folder = GetImapClient().GetFolder(folderPath);
+            folder.Open(FolderAccess.ReadWrite);
+            var uid = folder.Append(message);
+            Task.Run(() => {
+                Task.Delay(5000).Wait();
+                if (uid != null)
+                    folder.SetFlags((UniqueId)uid, MessageFlags.Seen, true);
+                else
+                    Console.WriteLine($"[disk upload]{fileName} not marked as seened");
+            });
 
-            using (var smtpClient = new SmtpClient())
-            {
-                smtpClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                smtpClient.Connect(smtpServer, smtpPort, smtpSsl);
-                smtpClient.Authenticate(account, password);
-                smtpClient.Send(message);
-                smtpClient.Disconnect(true);
-            }
 #if DEBUG
             Console.WriteLine($"[disk upload]upload success");
 #endif
-            Task.Run(() => CheckFile(fileName, folderPath));
             return true;
         }
-
-
-        private void CheckFile(string fileName, string folderPath)
-        {
-            int retryCount = 0;
-
-            while (retryCount <= 30)
-            {
-#if DEBUG
-                Console.WriteLine($"[disk CheckFile]check mail {retryCount} times, {fileName}");
-#endif
-                Task.Delay(5000).Wait();
-                var client = GetImapClient();
-                var inbox = client.Inbox;
-                inbox.Open(FolderAccess.ReadWrite);
-                var uids = inbox.Search(SearchQuery.NotSeen);
-                foreach (var m in inbox.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
-                {
-#if DEBUG
-                    Console.WriteLine($"[disk CheckFile]mail not seen {m.Envelope.Subject}");
-#endif
-                    if (m.Envelope.Subject == "[mailDisk]" + fileName)
-                    {
-                        inbox.AddFlags(m.UniqueId, MessageFlags.Seen, true);
-                        inbox.MoveTo(m.UniqueId, client.GetFolder(folderPath));
-#if DEBUG
-                        Console.WriteLine($"[disk CheckFile]file {fileName} moved ok!");
-#endif
-                        break;
-                    }
-                }
-                client.Disconnect(true);
-                retryCount++;
-            }
-
-        }
-
 
         /// <summary>
         /// download file from mail
@@ -193,6 +171,14 @@ namespace maildisk.apis
         }
 
 
+        /// <summary>
+        /// upload big files, auto split by setting's size
+        /// </summary>
+        /// <param name="fileName">file name on cloud disk</param>
+        /// <param name="folderPath">folder on email</param>
+        /// <param name="filePath">local file path</param>
+        /// <param name="blockSize">max size for each mail</param>
+        /// <returns>file upload success or not</returns>
         public bool UploadBigFile(string fileName, string folderPath, string filePath, int blockSize)
         {
             FileInfo fileInfo = new FileInfo(filePath);
@@ -215,8 +201,20 @@ namespace maildisk.apis
                             byte[] bytes = br.ReadBytes(blockSize);
                             Stream stream = new MemoryStream(bytes);
 
-                            if (!Upload(fileName+$"<{couter}/{steps}>", folderPath, stream))
-                                return false;
+                            bool result = false;
+                            while(!result)
+                            {
+                                try
+                                {
+                                    result = Upload(fileName + $"<{couter}/{steps}>", folderPath, stream);
+                                }
+                                catch(Exception e)
+                                {
+#if DEBUG
+                                    Console.WriteLine($"[disk Upload]fail retry, infomation:" + e.Message);
+#endif
+                                }
+                            }
 
                             isReadingComplete = (bytes.Length != blockSize);
                             if (!isReadingComplete)
@@ -230,7 +228,21 @@ namespace maildisk.apis
             }
             else
             {
-                return Upload(fileName, folderPath, File.OpenRead(filePath));
+                bool result = false;
+                while (!result)
+                {
+                    try
+                    {
+                        result = Upload(fileName, folderPath, File.OpenRead(filePath));
+                    }
+                    catch (Exception e)
+                    {
+#if DEBUG
+                        Console.WriteLine($"[disk Upload]fail retry, infomation:" + e.Message);
+#endif
+                    }
+                }
+                return true;
             }
         }
 

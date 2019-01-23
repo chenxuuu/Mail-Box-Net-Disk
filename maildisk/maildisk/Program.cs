@@ -15,14 +15,14 @@ namespace maildisk
                 Console.WriteLine(i);
 
             var disk = new VisualDisk("imap.qq.com", 993, true,
-                "961726194@qq.com", "",
+                "lolicon@papapoi.com", "",
                 "lolicon@papapoi.com",
                 "smtp.qq.com", 465, true);
 
-            Console.WriteLine(disk.UploadBigFile("测试文件.mp4", 
+            Console.WriteLine(disk.UploadBigFile("Ubuntu 64 位-s004.vmdk",
                 "其他文件夹/test",
-                @"C:\Users\chenx\OneDrive\others\for_share\H\sf\a\[桜都字幕组][720P][メリー･ジェーン]小女ラムネ第4話みんなの夏休み.mp4",
-                1000 * 1000 * 50));
+                @"D:\ubuntu\Ubuntu 64 位-s004.vmdk",
+                1000 * 1000 * 36));
 
 
             //var mail = new MailClient("imap.qq.com", 993, true,
@@ -46,12 +46,19 @@ namespace maildisk
                 //client.Authenticate("lolicon@papapoi.com", "lsykvlybakgkbfda");
 
                 //// The Inbox folder is always available on all IMAP servers...
-                //var inbox = client.GetFolder("其他文件夹/se");
+                //var inbox = client.GetFolder("其他文件夹/test");
                 //inbox.Open(FolderAccess.ReadOnly);
 
                 //Console.WriteLine("Total messages: {0}", inbox.Count);
-                //Console.WriteLine("Recent messages: {0}", inbox.Recent);
-                
+                ////Console.WriteLine("Recent messages: {0}", inbox.Recent);
+
+                //var uids = inbox.Search(SearchQuery.SubjectContains("10"));
+
+                //foreach (var summary in inbox.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
+                //{
+                //    Console.WriteLine("[summary] {0:D2}: {1}", summary.Index, summary.Envelope.Subject);
+                //}
+
                 //for (int i = 0; i < inbox.Count; i++)
                 //{
                 //    var message = inbox.GetMessage(i);
