@@ -23,8 +23,9 @@ namespace maildisk.apis
         private string smtpServer;
         private int smtpPort;
         private bool smtpSsl;
-        
-        public VisualDisk(string imapServer, int port, bool useSsl, string account, string password, string address, 
+        private string lastFolder;
+
+        public VisualDisk(string imapServer, int port, bool useSsl, string account, string password, string address,
             string smtpServer,int smtpPort, bool smtpSsl)
         {
             this.imapServer = imapServer;
@@ -40,6 +41,23 @@ namespace maildisk.apis
             Console.WriteLine($"[disk create]mail client created, on {imapServer}:{port}" +
                 $", ssl:{useSsl}, {account}, {address},{smtpServer},{smtpPort},{smtpSsl}");
 #endif
+            //auto mark as seen task
+            Task.Run(() => {
+                while(true)
+                {
+                    if (lastFolder != null)
+                    {
+                        var client = GetImapClient();
+                        var f = client.GetFolder(lastFolder);
+                        f.Open(FolderAccess.ReadWrite);
+                        var uids = f.Search(SearchQuery.NotSeen);
+                        foreach (var u in uids)
+                            f.AddFlags(u, MessageFlags.Seen, true);
+                        client.Disconnect(true);
+                    }
+                    Task.Delay(30 * 1000).Wait();
+                }
+            });
         }
 
         /// <summary>
@@ -84,11 +102,11 @@ namespace maildisk.apis
             message.Subject = "[mailDisk]" + fileName;
             var body = new TextPart("plain")
             {
-                Text = 
-                "This mail is send by mail disk\r\n" +
+                Text =
+                "This mail was send by mail disk\r\n" +
                 "please do not delete"
             };
-            
+
             var attachment = new MimePart()
             {
                 Content = new MimeContent(file, ContentEncoding.Default),
@@ -96,7 +114,7 @@ namespace maildisk.apis
                 ContentTransferEncoding = ContentEncoding.Base64,
                 FileName = "attachment.netdiskfile"
             };
-            
+
             var multipart = new Multipart("mixed");
             multipart.Add(body);
             multipart.Add(attachment);
@@ -107,17 +125,12 @@ namespace maildisk.apis
             var folder = GetImapClient().GetFolder(folderPath);
             folder.Open(FolderAccess.ReadWrite);
             var uid = folder.Append(message);
-            Task.Run(() => {
-                Task.Delay(5000).Wait();
-                if (uid != null)
-                    folder.SetFlags((UniqueId)uid, MessageFlags.Seen, true);
-                else
-                    Console.WriteLine($"[disk upload]{fileName} not marked as seened");
-            });
+            lastFolder = folderPath;
 
 #if DEBUG
             Console.WriteLine($"[disk upload]upload success");
 #endif
+            client.Disconnect(true);
             return true;
         }
 
@@ -166,7 +179,7 @@ namespace maildisk.apis
                 }
             }
 
-
+            client.Disconnect(true);
             return true;
         }
 
