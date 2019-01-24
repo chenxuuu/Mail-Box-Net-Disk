@@ -219,7 +219,7 @@ namespace maildisk.apis
                                 catch(Exception e)
                                 {
 #if DEBUG
-                                    Console.WriteLine($"[disk Upload]fail retry, infomation:" + e.Message);
+                                    Console.WriteLine($"[disk Upload]fail, retry, infomation:" + e.Message);
 #endif
                                 }
                             }
@@ -246,7 +246,7 @@ namespace maildisk.apis
                     catch (Exception e)
                     {
 #if DEBUG
-                        Console.WriteLine($"[disk Upload]fail retry, infomation:" + e.Message);
+                        Console.WriteLine($"[disk Upload]fail, retry, infomation:" + e.Message);
 #endif
                     }
                 }

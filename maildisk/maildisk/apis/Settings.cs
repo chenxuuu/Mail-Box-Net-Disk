@@ -10,6 +10,7 @@ namespace maildisk.apis
     class Settings
     {
         private static string path = Directory.GetCurrentDirectory();
+        public static long maxBlock = 0;
 
         /// <summary>
         /// check setting file exist
@@ -46,6 +47,9 @@ namespace maildisk.apis
             Console.Write("E-mail address:");
             o["address"] = Console.ReadLine();
 
+            Console.Write("Max size for each file(MiB):");
+            o["block"] = Console.ReadLine();
+
             File.WriteAllText(path + "/mail.json", o.ToString());
 
             Console.WriteLine("\r\ndone! enjoy!");
@@ -68,6 +72,7 @@ namespace maildisk.apis
                     (string)jo["account"],
                     (string)jo["password"],
                     (string)jo["address"]);
+                maxBlock = (long)jo["block"];
                 return disk;
             }
             else

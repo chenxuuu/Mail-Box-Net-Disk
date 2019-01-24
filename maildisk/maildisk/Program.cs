@@ -36,10 +36,10 @@ create new folder on mail server.
 -l <email folder>:
 show files in this folder.
 
--u <email folder> <local file path>:
+-u <email folder> <local file> <file name on cloud>:
 upload a file to net disk.
 
--d <email folder> <file name>:
+-d <email folder> <local file> <file name on cloud>:
 download a file from net disk.".Replace("\r\n","\r\n\t"));
                         return;
 
@@ -66,6 +66,20 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                         Console.WriteLine("creating folder:" + args[1]);
                         cfdisk.CreatFolder(args[1]);
                         return;
+
+                    case "-u":
+                        var udisk = Settings.GetDisk();
+                        if (udisk == null) return;
+                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        Console.WriteLine($"uploading file {args[2]} to {args[1]} as {args[3]}");
+                        if(args[3].IndexOf("<")>=0)
+                        {
+                            Console.WriteLine($"error! file name do not contain '<'");
+                            return;
+                        }
+                        udisk.UploadBigFile(args[3], args[1], args[2], (int)Settings.maxBlock * 1024 * 1024);
+                        return;
+
 
                     default:
                         break;
