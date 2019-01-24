@@ -3,5 +3,18 @@ mono: none
 dotnet: 2.1.502
 script:
   - cd maildisk
-  - dotnet build --runtime ubuntu.14.04-x64
-
+  - dotnet build --runtime linux-x64
+  - dotnet build --runtime win-x64
+  - cd maildisk/bin/Debug/netcoreapp2.1/
+  - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/
+  - sudo apt-get -y install zip
+  - zip -r ../../../../../win-x64.zip win-x64/ -r
+  - cd ../../../../../
+deploy:
+  provider: releases
+  api_key: ${GITHUB_TOKEN}
+  file:
+  - win-x64.zip
+  - linux-x64.tar.gz
+  skip_cleanup: true
+  draft: true
