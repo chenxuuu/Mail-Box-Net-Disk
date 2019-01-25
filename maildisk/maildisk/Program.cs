@@ -95,7 +95,7 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                         var ddisk = Settings.GetDisk();
                         if (ddisk == null) return;
                         if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
-                        Console.WriteLine($"Download file {args[3]} from {args[1]} as {args[1]} ...");
+                        Console.WriteLine($"Download file {args[3]} from {args[1]} as {args[2]} ...");
                         if (args[3].IndexOf("<") >= 0)
                         {
                             Console.WriteLine($"error! file name do not contain '<'");
@@ -107,8 +107,6 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                     default:
                         break;
             }
-
-            Console.ReadLine();
             Console.WriteLine(@"no commond matched
 use -h to show commands we support");
             return;
