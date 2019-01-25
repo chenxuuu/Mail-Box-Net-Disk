@@ -3,7 +3,7 @@ mono: none
 dotnet: 2.1.502
 script:
   - cd maildisk
-  - dotnet publish -r- linux-x64
+  - dotnet publish -r linux-x64
   - dotnet publish -r win-x64
   - cd maildisk/bin/Debug/netcoreapp2.1/
   - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/
