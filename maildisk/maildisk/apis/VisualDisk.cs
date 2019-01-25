@@ -86,7 +86,7 @@ namespace maildisk.apis
         /// <param name="folderPath">folder on email</param>
         /// <param name="filePath">local file path</param>
         /// <returns>file upload success or not</returns>
-        public bool Upload(string fileName, string folderPath, Stream file)
+        private bool Upload(string fileName, string folderPath, Stream file)
         {
 #if DEBUG
             Console.WriteLine($"[disk upload]{fileName},{folderPath},{file.Length}");
@@ -138,8 +138,9 @@ namespace maildisk.apis
         public string[] GetFileList(string folderPath)
         {
             ArrayList mails = new ArrayList();
-            var folder = GetImapClient().GetFolder(folderPath);
-            folder.Open(FolderAccess.ReadWrite);
+            var client = GetImapClient();
+            var folder = client.GetFolder(folderPath);
+            folder.Open(FolderAccess.ReadOnly);
             Console.WriteLine($"find {folder.Count} mails in this folder");
             for(int i = 0;i < folder.Count; i += 100)
             {
@@ -176,7 +177,7 @@ namespace maildisk.apis
                             Console.WriteLine($"file {mc[0].Groups[1]} check ok");
                         }
                         else
-                            Console.WriteLine($"file {mc[0].Groups[1]}'s parts are missing, not pass");
+                            Console.WriteLine($"file {mc[0].Groups[1]}'s parts are missing");
                     }
                         
                 }
@@ -185,59 +186,170 @@ namespace maildisk.apis
                     files.Add(f);
                 }
             }
-
+            client.Disconnect(true);
             Console.WriteLine($"\r\n\r\ndone! list of files:");
             return (string[])files.ToArray(typeof(string));
         }
 
         /// <summary>
-        /// download file from mail
+        /// download file
         /// </summary>
-        /// <param name="folderPath">folder on email</param>
-        /// <param name="fileName">file name on cloud disk</param>
-        /// <param name="savePath">local file path</param>
-        /// <returns>file download success or not</returns>
-        public bool Download(string fileName, string folderPath, string savePath)
+        /// <param name="folderPath">mail folder</param>
+        /// <param name="fileName">file save name</param>
+        public void DownloadFile(string folderPath, string fileName, string local)
         {
-#if DEBUG
-            Console.WriteLine($"[disk download]{folderPath},{fileName},{savePath}");
-#endif
+            if(File.Exists(local))
+            {
+                Console.WriteLine($"error! file {local} already exist!");
+                return;
+            }
             var client = GetImapClient();
             var folder = client.GetFolder(folderPath);
             folder.Open(FolderAccess.ReadOnly);
-            var mails = folder.Fetch(0,-1, MessageSummaryItems.UniqueId | MessageSummaryItems.Full);
-            foreach(var m in mails)
+            var uids = folder.Search(SearchQuery.SubjectContains($"[mailDisk]{fileName}"));
+            
+            ArrayList fileNames = new ArrayList();
+            Console.WriteLine($"find {uids.Count} matchs in this folder");
+            Console.WriteLine($"fatching mails");
+            var all = folder.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+            bool singleFile = true;
+            int fileSum = 0;
+            bool hasFile = false;
+            foreach(var m in all)
             {
-#if DEBUG
-                Console.WriteLine($"[disk download]find mail {m.Envelope.Subject}");
-#endif
-                if (m.Envelope.Subject == "[mailDisk]" + fileName)
+                string subject = m.Envelope.Subject.Substring("[mailDisk]".Length);
+                if (subject.IndexOf(fileName) == 0 && (subject.Length == fileName.Length || subject.Substring(fileName.Length, 1) == "<"))
                 {
-#if DEBUG
-                    Console.WriteLine($"[disk download]downloading file {m.Envelope.Subject}");
-#endif
-                    MimeMessage message = folder.GetMessage(m.UniqueId);
-                    foreach (MimePart attachment in message.Attachments)
+                    if(subject.Length == fileName.Length)
                     {
-                        //下载附件
-                        using (var cancel = new System.Threading.CancellationTokenSource())
-                        {
-                            using (var stream = File.Create(savePath))
-                            {
-                                attachment.Content.DecodeTo(stream, cancel.Token);
-                            }
-                        }
+                        hasFile = true;
+                        break;
                     }
-#if DEBUG
-                    Console.WriteLine($"[disk download]download file done!");
-#endif
-                    break;
+                    MatchCollection mc = Regex.Matches(subject, @"<1/(\d+?)>");
+                    if (mc.Count > 0 && mc[0].Groups.Count == 2)
+                    {
+                        fileSum = int.Parse(mc[0].Groups[1].ToString());
+                        singleFile = false;
+                        hasFile = true;
+                        break;
+                    }
                 }
             }
 
-            client.Disconnect(true);
-            return true;
+            if(!hasFile)
+            {
+                Console.WriteLine($"error! file not exist!");
+                return;
+            }
+
+            if(singleFile)
+            {
+                foreach (var m in all)
+                {
+                    if(m.Envelope.Subject.IndexOf($"[mailDisk]{fileName}") == 0)
+                    {
+                        while(true)
+                        {
+                            try
+                            {
+                                using (FileStream output = File.Create(local))
+                                {
+                                    var r = Download(folder, m.UniqueId);
+                                    byte[] bytes = new byte[r.Length];
+                                    r.Read(bytes, 0, bytes.Length);
+                                    r.Seek(0, SeekOrigin.Begin);
+                                    output.Write(bytes, 0, bytes.Length);
+                                    break;
+                                }
+                            }
+                            catch(Exception e)
+                            {
+                                Console.WriteLine($"[disk Download]fail, retry, infomation:" + e.Message);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                ArrayList mails = new ArrayList();
+                foreach (var m in all)
+                {
+                    string subject = m.Envelope.Subject.Substring("[mailDisk]".Length);
+                    mails.Add(subject);
+                }
+                Console.WriteLine($"find file {fileName} with {fileSum} parts,checking...");
+                bool result = true;//check is it have all files
+                for (int i = 1; i <= fileSum; i++)
+                {
+                    if (!mails.Contains($"{fileName}<{i}/{fileSum}>"))
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+                if (result)
+                {
+                    Console.WriteLine($"file {fileName} check ok, begin download...");
+                    using (var output = File.Create(local))
+                    {
+                        for (int i = 1; i <= fileSum; i++)
+                        {
+                            foreach (var m in all)
+                            {
+                                if (m.Envelope.Subject.IndexOf($"[mailDisk]{fileName}<{i}/{fileSum}>") == 0)
+                                {
+                                    while (true)
+                                    {
+                                        try
+                                        {
+                                            Console.WriteLine($"downloading {fileName}<{i}/{fileSum}> ...");
+                                            var r = Download(folder, m.UniqueId);
+                                            r.Position = 0;
+                                            r.CopyTo(output);
+                                            break;
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine($"[disk Download]fail, retry, infomation:" + e.Message);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"file {fileName}'s parts are missing, download fail");
+                    return;
+                } 
+            }
+            Console.WriteLine($"file {fileName} download success!");
         }
+
+        /// <summary>
+        /// download a mail's attachments
+        /// </summary>
+        /// <param name="folder">file folder</param>
+        /// <param name="id">mail uid</param>
+        /// <returns>file's stream</returns>
+        private Stream Download(IMailFolder folder, UniqueId id)
+        {
+            Stream stream = new MemoryStream();
+            MimeMessage message = folder.GetMessage(id);
+            foreach (MimePart attachment in message.Attachments)
+            {
+                //下载附件
+                using (var cancel = new CancellationTokenSource())
+                {
+                    attachment.Content.DecodeTo(stream, cancel.Token);
+                    return stream;
+                }
+            }
+            return stream;
+        }
+        
 
 
         /// <summary>
@@ -279,9 +391,7 @@ namespace maildisk.apis
                                 }
                                 catch(Exception e)
                                 {
-#if DEBUG
                                     Console.WriteLine($"[disk Upload]fail, retry, infomation:" + e.Message);
-#endif
                                 }
                             }
 
@@ -306,9 +416,7 @@ namespace maildisk.apis
                     }
                     catch (Exception e)
                     {
-#if DEBUG
                         Console.WriteLine($"[disk Upload]fail, retry, infomation:" + e.Message);
-#endif
                     }
                 }
                 return true;
