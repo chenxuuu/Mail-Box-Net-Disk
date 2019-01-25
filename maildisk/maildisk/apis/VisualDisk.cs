@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -145,13 +146,48 @@ namespace maildisk.apis
                 Console.WriteLine($"fatching mails {i}/{folder.Count}");
                 foreach (var m in folder.Fetch(i, i + 100, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
                 {
-                    mails.Add(m.Envelope.Subject);
+                    if(m.Envelope.Subject.IndexOf("[mailDisk]") == 0)
+                        mails.Add(m.Envelope.Subject.Substring("[mailDisk]".Length));
+                }
+            }
+            
+            ArrayList files = new ArrayList();
+            foreach(string f in mails)
+            {
+                if (f.IndexOf("<")>=0)
+                {
+                    MatchCollection mc = Regex.Matches(f, @"(.+?)<1/(\d+?)>");
+                    if (mc.Count > 0 && mc[0].Groups.Count == 3)
+                    {
+                        Console.WriteLine($"find file {mc[0].Groups[1]} with {mc[0].Groups[2]} parts,checking...");
+                        bool result = true;//check is it have all files
+                        int sum = int.Parse(mc[0].Groups[2].ToString());
+                        for(int i=1;i<=sum;i++)
+                        {
+                            if(!mails.Contains($"{mc[0].Groups[1]}<{i}/{sum}>"))
+                            {
+                                result = false;
+                                break;
+                            }
+                        }
+                        if(result)
+                        {
+                            files.Add(mc[0].Groups[1].ToString());
+                            Console.WriteLine($"file {mc[0].Groups[1]} check ok");
+                        }
+                        else
+                            Console.WriteLine($"file {mc[0].Groups[1]}'s parts are missing, not pass");
+                    }
+                        
+                }
+                else
+                {
+                    files.Add(f);
                 }
             }
 
             Console.WriteLine($"\r\n\r\ndone! list of files:");
-
-            return (string[])mails.ToArray(typeof(string));
+            return (string[])files.ToArray(typeof(string));
         }
 
         /// <summary>
