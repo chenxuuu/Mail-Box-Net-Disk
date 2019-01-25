@@ -50,7 +50,7 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                     case "-lf":
                         var lfdisk = Settings.GetDisk();
                         if (lfdisk == null) return;
-                        Console.WriteLine("getting all folders");
+                        Console.WriteLine("getting all folders ...");
                         var all = lfdisk.GetFolders();
                         Console.WriteLine("here's all folders:");
                         foreach(var f in all)
@@ -63,15 +63,26 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                         var cfdisk = Settings.GetDisk();
                         if (cfdisk == null) return;
                         if(args.Length < 2) { Console.WriteLine("please enter a folder name");return; }
-                        Console.WriteLine("creating folder:" + args[1]);
+                        Console.WriteLine($"creating folder {args[1]} ...");
                         cfdisk.CreatFolder(args[1]);
+                        return;
+
+                    case "-l":
+                        var ldisk = Settings.GetDisk();
+                        if (ldisk == null) return;
+                        if (args.Length < 2) { Console.WriteLine("please enter a folder name"); return; }
+                        Console.WriteLine($"fetching file list with folder {args[1]} ...");
+                        foreach(var s in ldisk.GetFileList(args[1]))
+                        {
+                            Console.WriteLine(s);
+                        }
                         return;
 
                     case "-u":
                         var udisk = Settings.GetDisk();
                         if (udisk == null) return;
                         if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
-                        Console.WriteLine($"uploading file {args[2]} to {args[1]} as {args[3]}");
+                        Console.WriteLine($"uploading file {args[2]} to {args[1]} as {args[3]} ...");
                         if(args[3].IndexOf("<")>=0)
                         {
                             Console.WriteLine($"error! file name do not contain '<'");

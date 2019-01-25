@@ -130,6 +130,31 @@ namespace maildisk.apis
         }
 
         /// <summary>
+        /// get file list with folder
+        /// </summary>
+        /// <param name="folderPath">folder</param>
+        /// <returns>files' name</returns>
+        public string[] GetFileList(string folderPath)
+        {
+            ArrayList mails = new ArrayList();
+            var folder = GetImapClient().GetFolder(folderPath);
+            folder.Open(FolderAccess.ReadWrite);
+            Console.WriteLine($"find {folder.Count} mails in this folder");
+            for(int i = 0;i < folder.Count; i += 100)
+            {
+                Console.WriteLine($"fatching mails {i}/{folder.Count}");
+                foreach (var m in folder.Fetch(i, i + 100, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
+                {
+                    mails.Add(m.Envelope.Subject);
+                }
+            }
+
+            Console.WriteLine($"\r\n\r\ndone! list of files:");
+
+            return (string[])mails.ToArray(typeof(string));
+        }
+
+        /// <summary>
         /// download file from mail
         /// </summary>
         /// <param name="folderPath">folder on email</param>
