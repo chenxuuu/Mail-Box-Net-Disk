@@ -6,9 +6,9 @@ script:
   - dotnet publish -r linux-x64
   - dotnet publish -r win-x64
   - cd maildisk/bin/Debug/netcoreapp2.1/
-  - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/
+  - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/publish/
   - sudo apt-get -y install zip
-  - zip -r ../../../../../win-x64.zip win-x64/ -r
+  - zip -r ../../../../../win-x64.zip win-x64/publish/ -r
   - cd ../../../../../
 deploy:
   provider: releases
