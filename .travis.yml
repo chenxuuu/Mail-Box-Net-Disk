@@ -3,8 +3,8 @@ mono: none
 dotnet: 2.1.502
 script:
   - cd maildisk
-  - dotnet build --runtime linux-x64
-  - dotnet build --runtime win-x64
+  - dotnet publish -r- linux-x64
+  - dotnet publish -r win-x64
   - cd maildisk/bin/Debug/netcoreapp2.1/
   - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/
   - sudo apt-get -y install zip
