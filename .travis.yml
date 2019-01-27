@@ -35,4 +35,5 @@ deploy:
   - linux-arm64.tar.gz
   - osx-x64.zip
   skip_cleanup: true
-  draft: true
+  on:
+    tags: true

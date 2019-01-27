@@ -252,13 +252,11 @@ namespace maildisk.apis
                         {
                             try
                             {
-                                using (FileStream output = File.Create(local))
+                                using (var output = File.Create(local))
                                 {
                                     var r = Download(folder, m.UniqueId);
-                                    byte[] bytes = new byte[r.Length];
-                                    r.Read(bytes, 0, bytes.Length);
-                                    r.Seek(0, SeekOrigin.Begin);
-                                    output.Write(bytes, 0, bytes.Length);
+                                    r.Position = 0;
+                                    r.CopyTo(output);
                                     break;
                                 }
                             }
@@ -439,6 +437,7 @@ namespace maildisk.apis
             {
                 if (folder.GetSubfolders(false).Count > 0)
                 {
+                    folders.Add(folder);
                     folders.AddRange(GetFolders(folder.FullName));
                 }
                 else
@@ -457,18 +456,19 @@ namespace maildisk.apis
         /// <returns>result</returns>
         public void CreatFolder(string path)
         {
-            try
+            var client = GetImapClient();
+            if(path.IndexOf("/") < 0)
             {
-                if (path.IndexOf("/") == -1) throw new Exception("only can create sub folder!");
-                var client = GetImapClient();
-                var s = path.Split("/");
-                client.GetFolder(s[0]).Create(s[1], true);
-                Console.WriteLine($"[create folder]folder {path} created");
+                var root = client.GetFolder("");
+                root.Create(path, true);
             }
-            catch(Exception e)
+            else
             {
-                Console.WriteLine("[create folder]error:" + e.Message);
+                int l = path.LastIndexOf("/");
+                var folder = client.GetFolder(path.Substring(0,l));
+                folder.Create(path.Substring(l+1), true);
             }
+            Console.WriteLine($"[disk folder]folder {path} is created.");
         }
     }
 }
