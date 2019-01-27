@@ -3,18 +3,36 @@ mono: none
 dotnet: 2.1.502
 script:
   - cd maildisk
-  - dotnet publish -r linux-x64
+  - dotnet publish -r win-x86
   - dotnet publish -r win-x64
+  - dotnet publish -r win-arm
+  - dotnet publish -r win-arm64
+  - dotnet publish -r linux-x64
+  - dotnet publish -r linux-arm
+  - dotnet publish -r linux-arm64
+  - dotnet publish -r osx-x64
   - cd maildisk/bin/Debug/netcoreapp2.1/
   - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/publish/
+  - tar -zcvf ../../../../../linux-arm.tar.gz linux-arm/publish/
+  - tar -zcvf ../../../../../linux-arm64.tar.gz linux-arm64/publish/
   - sudo apt-get -y install zip
+  - zip -r ../../../../../win-x86.zip win-x86/publish/ -r
   - zip -r ../../../../../win-x64.zip win-x64/publish/ -r
+  - zip -r ../../../../../win-arm.zip win-arm/publish/ -r
+  - zip -r ../../../../../win-arm64.zip win-arm64/publish/ -r
+  - zip -r ../../../../../osx-x64.zip osx-x64/publish/ -r
   - cd ../../../../../
 deploy:
   provider: releases
   api_key: ${GITHUB_TOKEN}
   file:
+  - win-x86.zip
   - win-x64.zip
+  - win-arm.zip
+  - win-arm64.zip
   - linux-x64.tar.gz
+  - linux-arm.tar.gz
+  - linux-arm64.tar.gz
+  - osx-x64.zip
   skip_cleanup: true
   draft: true
