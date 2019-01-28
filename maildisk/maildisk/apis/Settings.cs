@@ -9,7 +9,7 @@ namespace maildisk.apis
 {
     class Settings
     {
-        private static string path = Directory.GetCurrentDirectory();
+        private static string path = AppDomain.CurrentDomain.BaseDirectory;
         public static long maxBlock = 0;
 
         /// <summary>
