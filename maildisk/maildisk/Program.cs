@@ -36,6 +36,9 @@ create new folder on mail server.
 -l <email folder>:
 show files in this folder.
 
+-c <email folder>:
+clear all wrong files in this folder.
+
 -u <email folder> <local file> <file name on cloud>:
 upload a file to net disk.
 
@@ -72,10 +75,21 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                         if (ldisk == null) return;
                         if (args.Length < 2) { Console.WriteLine("please enter a folder name"); return; }
                         Console.WriteLine($"fetching file list with folder {args[1]} ...");
-                        foreach(var s in ldisk.GetFileList(args[1]))
+                        var lfiles = ldisk.GetFileList(args[1]);
+                        Console.WriteLine($"\r\n\r\ndone! list of files:");
+                        foreach (var s in lfiles)
                         {
                             Console.WriteLine(s);
                         }
+                        return;
+
+                    case "-c":
+                        var cdisk = Settings.GetDisk();
+                        if (cdisk == null) return;
+                        if (args.Length < 2) { Console.WriteLine("please enter a folder name"); return; }
+                        Console.WriteLine($"fetching file list with folder {args[1]} ...");
+                        cdisk.GetFileList(args[1], true);
+                        Console.WriteLine($"\r\n\r\ndone!");
                         return;
 
                     case "-u":

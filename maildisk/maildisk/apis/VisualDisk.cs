@@ -135,23 +135,29 @@ namespace maildisk.apis
         /// </summary>
         /// <param name="folderPath">folder</param>
         /// <returns>files' name</returns>
-        public string[] GetFileList(string folderPath)
+        public string[] GetFileList(string folderPath, bool deleteMissing = false)
         {
             ArrayList mails = new ArrayList();
             var client = GetImapClient();
             var folder = client.GetFolder(folderPath);
-            folder.Open(FolderAccess.ReadOnly);
+            folder.Open(FolderAccess.ReadWrite);
             Console.WriteLine($"find {folder.Count} mails in this folder");
             for(int i = 0;i < folder.Count; i += 100)
             {
                 Console.WriteLine($"fatching mails {i}/{folder.Count}");
-                foreach (var m in folder.Fetch(i, i + 100, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
+                int max = i + 100;
+                if (max >= folder.Count)
+                    max = folder.Count - 1;
+                foreach (var m in folder.Fetch(i, max, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
                 {
                     if(m.Envelope.Subject.IndexOf("[mailDisk]") == 0)
                         mails.Add(m.Envelope.Subject.Substring("[mailDisk]".Length));
                 }
+                if (max == folder.Count)
+                    break;
             }
-            
+            Console.WriteLine($"mails in {folder.Count} fatched ok.");
+
             ArrayList files = new ArrayList();
             foreach(string f in mails)
             {
@@ -186,8 +192,37 @@ namespace maildisk.apis
                     files.Add(f);
                 }
             }
+            if(deleteMissing)
+            {
+                Console.WriteLine("start cleaning all missing mails");
+                for (int i = 0; i < folder.Count; i += 100)
+                {
+                    Console.WriteLine($"fatching mails {i}/{folder.Count}");
+                    int max = i + 100;
+                    if (max >= folder.Count)
+                        max = folder.Count - 1;
+                    foreach (var m in folder.Fetch(i, max, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
+                    {
+                        if (m.Envelope.Subject.IndexOf("[mailDisk]") == 0)
+                        {
+                            string name = m.Envelope.Subject.Substring("[mailDisk]".Length);
+                            Console.WriteLine($"checking file {name}");
+                            MatchCollection mc = Regex.Matches(name, @"(.+?)<(\d+?)/(\d+?)>");
+                            if (mc.Count > 0 && mc[0].Groups.Count == 3)
+                                name = mc[0].Groups[1].ToString();
+                            if (!files.Contains(name))
+                            {
+                                Console.WriteLine($"file {name} is not right, mark as deleted");
+                                folder.AddFlags(m.UniqueId, MessageFlags.Deleted, true);
+                            }
+                        }
+                    }
+                    if (max == folder.Count)
+                        break;
+                }
+                folder.Expunge();
+            }
             client.Disconnect(true);
-            Console.WriteLine($"\r\n\r\ndone! list of files:");
             return (string[])files.ToArray(typeof(string));
         }
 
