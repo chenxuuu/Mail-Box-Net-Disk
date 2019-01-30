@@ -395,6 +395,11 @@ namespace maildisk.apis
         /// <returns>file upload success or not</returns>
         public bool UploadBigFile(string fileName, string folderPath, string filePath, int blockSize)
         {
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"error! file {filePath} not exist!");
+                return false;
+            }
             FileInfo fileInfo = new FileInfo(filePath);
             if (fileInfo.Length > blockSize)
             {
