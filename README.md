@@ -1,6 +1,6 @@
 # 邮箱网盘
 
-[![Build Status](https://travis-ci.com/chenxuuu/Mail-Box-Net-Disk.svg?branch=master)](https://travis-ci.com/chenxuuu/Mail-Box-Net-Disk)
+[![Build Status](https//travis-ci.com/chenxuuu/Mail-Box-Net-Disk.svg?branch=master)](https//travis-ci.com/chenxuuu/Mail-Box-Net-Disk)
 
 利用邮箱实现网盘功能的工具。
 
@@ -22,6 +22,42 @@
 - [x] 支持文件夹下载
 - [ ] win系统下的gui管理工具
 - [ ] 其他系统下的gui管理工具
+
+## 命令列表
+
+```cmd
+maildisk -h 查看命令帮助
+
+         -s
+         更改邮箱参数设置
+
+         -lf
+         列出邮箱的所有邮件文件夹
+
+         -cf <邮件文件夹名>
+         新建一个邮件文件夹
+
+         -l <邮件文件夹>
+         列出所有该邮件文件夹下的文件
+
+         -c <邮件文件夹>
+         清除所有该邮件文件夹下不完整的分卷文件
+
+         -u <邮件文件夹> <本地文件> <云端文件>
+         上传文件
+
+         -d <邮件文件夹> <本地文件> <云端文件>
+         下载文件
+
+         -uf <邮件文件夹> <本地文件夹> <云端虚拟文件夹路径>
+         上传文件夹，并清理不完整分卷的邮件
+         注意：如果云端存在该文件，则不会上传
+
+         -df <邮件文件夹> <本地文件夹> <云端虚拟文件夹路径>
+         下载文件夹
+
+         所有文件和路径都不能包含'<'符号
+```
 
 ## 加入该项目
 
