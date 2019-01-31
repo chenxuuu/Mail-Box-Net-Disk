@@ -45,9 +45,9 @@ namespace maildisk.apis
                         foreach (var u in uids)
                         {
                             f.AddFlags(u, MessageFlags.Seen, true);
-#if DEBUG
+
                             Console.WriteLine($"[disk check]add a seen flag");
-#endif
+
                         }
                         client.Disconnect(true);
                     }
@@ -88,9 +88,9 @@ namespace maildisk.apis
         /// <returns>file upload success or not</returns>
         private bool Upload(string fileName, string folderPath, Stream file)
         {
-#if DEBUG
-            Console.WriteLine($"[disk upload]{fileName},{folderPath},{file.Length}");
-#endif
+
+            Console.WriteLine($"[disk upload]upload {fileName} to mail folder {folderPath}, size:{file.Length}");
+
             var client = GetImapClient();
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(address));
@@ -115,17 +115,17 @@ namespace maildisk.apis
             multipart.Add(body);
             multipart.Add(attachment);
             message.Body = multipart;
-#if DEBUG
+
             Console.WriteLine("[disk upload]appending...");
-#endif
+
             var folder = GetImapClient().GetFolder(folderPath);
             folder.Open(FolderAccess.ReadWrite);
             var uid = folder.Append(message);
             lastFolder = folderPath;
 
-#if DEBUG
+
             Console.WriteLine($"[disk upload]upload success");
-#endif
+
             client.Disconnect(true);
             return true;
         }
@@ -400,12 +400,18 @@ namespace maildisk.apis
                 Console.WriteLine($"error! file {filePath} not exist!");
                 return false;
             }
+            fileName = fileName.Replace("\\", "/");
+            while(fileName.IndexOf("/") == 0)//remove the "/" head
+            {
+                fileName = fileName.Substring(1);
+            }
+
             FileInfo fileInfo = new FileInfo(filePath);
             if (fileInfo.Length > blockSize)
             {
-#if DEBUG
+
                 Console.WriteLine($"[disk Upload]file need to be splited");
-#endif
+
                 var steps = (int)Math.Ceiling((double)fileInfo.Length / blockSize);
                 using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
@@ -509,6 +515,38 @@ namespace maildisk.apis
                 folder.Create(path.Substring(l+1), true);
             }
             Console.WriteLine($"[disk folder]folder {path} is created.");
+        }
+
+        /// <summary>
+        /// upload a folder
+        /// </summary>
+        /// <param name="cloudPath">cloud folder path</param>
+        /// <param name="folderPath">mail folder</param>
+        /// <param name="localPath">local folder path</param>
+        /// <param name="blockSize">each mail size</param>
+        public void UploadFolder(string cloudPath, string folderPath, string localPath, int blockSize)
+        {
+            Console.WriteLine($"[disk upload folder]upload {localPath} to {cloudPath}");
+            if (!Directory.Exists(localPath))
+            {
+                Console.WriteLine($"error! folder {localPath} not exist!");
+                return;
+            }
+            foreach(var f in Directory.GetDirectories(localPath))
+            {
+                int l = f.LastIndexOf("/");
+                if(l == -1)
+                    l = f.LastIndexOf("\\");
+                UploadFolder(cloudPath + f.Substring(l), folderPath, f, blockSize);
+            }
+            foreach(var f in Directory.GetFiles(localPath))
+            {
+                int l = f.LastIndexOf("/");
+                if (l == -1)
+                    l = f.LastIndexOf("\\");
+                UploadBigFile(cloudPath + f.Substring(l), folderPath, f, blockSize);
+            }
+            Console.WriteLine("done! all files uploaded!");
         }
     }
 }

@@ -43,7 +43,13 @@ clear all wrong files in this folder.
 upload a file to net disk.
 
 -d <email folder> <local file> <file name on cloud>:
-download a file from net disk.".Replace("\r\n","\r\n\t"));
+download a file from net disk.
+
+-uf <email folder> <local folder> <folder name on cloud>:
+upload a folder to net disk and clear all wrong files in this email folder.
+Notice: if file is exist on cloud, it will not be uploaded.
+
+All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                         return;
 
                     case "-s":
@@ -116,6 +122,19 @@ download a file from net disk.".Replace("\r\n","\r\n\t"));
                             return;
                         }
                         ddisk.DownloadFile(args[1], args[3], args[2]);
+                        return;
+
+                    case "-uf":
+                        var ufdisk = Settings.GetDisk();
+                        if (ufdisk == null) return;
+                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        Console.WriteLine($"Download file {args[3]} from {args[1]} as {args[2]} ...");
+                        if (args[3].IndexOf("<") >= 0)
+                        {
+                            Console.WriteLine($"error! file name do not contain '<'");
+                            return;
+                        }
+                        ufdisk.UploadFolder(args[3], args[1], args[2], (int)Settings.maxBlock * 1024 * 1024);
                         return;
 
                     default:
