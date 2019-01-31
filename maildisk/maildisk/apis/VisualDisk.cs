@@ -231,22 +231,28 @@ namespace maildisk.apis
         /// </summary>
         /// <param name="folderPath">mail folder</param>
         /// <param name="fileName">file save name</param>
-        public void DownloadFile(string folderPath, string fileName, string local)
+        public void DownloadFile(string folderPath, string fileName, string local, 
+            ImapClient client = null, 
+            IList<IMessageSummary> all = null,
+            IMailFolder folder = null)
         {
             if(File.Exists(local))
             {
                 Console.WriteLine($"error! file {local} already exist!");
                 return;
             }
-            var client = GetImapClient();
-            var folder = client.GetFolder(folderPath);
-            folder.Open(FolderAccess.ReadOnly);
-            var uids = folder.Search(SearchQuery.SubjectContains($"[mailDisk]{fileName}"));
-            
-            ArrayList fileNames = new ArrayList();
-            Console.WriteLine($"find {uids.Count} matchs in this folder");
-            Console.WriteLine($"fatching mails");
-            var all = folder.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+            if(client == null)
+                client = GetImapClient();
+            if(all == null)
+            {
+                folder = client.GetFolder(folderPath);
+                folder.Open(FolderAccess.ReadOnly);
+                var uids = folder.Search(SearchQuery.SubjectContains($"[mailDisk]{fileName}"));
+
+                Console.WriteLine($"find {uids.Count} matchs in this folder");
+                Console.WriteLine($"fatching mails");
+                all = folder.Fetch(uids, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+            }
             bool singleFile = true;
             int fileSum = 0;
             bool hasFile = false;
@@ -526,13 +532,18 @@ namespace maildisk.apis
         /// <param name="blockSize">each mail size</param>
         public void UploadFolder(string cloudPath, string folderPath, string localPath, int blockSize)
         {
+            while (cloudPath.LastIndexOf("/") == cloudPath.Length - 1)//remove last "/"
+            {
+                cloudPath = cloudPath.Substring(0, cloudPath.Length - 1);
+            }
             Console.WriteLine($"[disk upload folder]upload {localPath} to {cloudPath}");
             if (!Directory.Exists(localPath))
             {
                 Console.WriteLine($"error! folder {localPath} not exist!");
                 return;
             }
-            foreach(var f in Directory.GetDirectories(localPath))
+            
+            foreach (var f in Directory.GetDirectories(localPath))
             {
                 int l = f.LastIndexOf("/");
                 if(l == -1)
@@ -546,7 +557,45 @@ namespace maildisk.apis
                     l = f.LastIndexOf("\\");
                 UploadBigFile(cloudPath + f.Substring(l), folderPath, f, blockSize);
             }
-            Console.WriteLine("done! all files uploaded!");
+        }
+
+        /// <summary>
+        /// download a floder
+        /// </summary>
+        /// <param name="cloudPath">cloud folder path</param>
+        /// <param name="folderPath">mail folder</param>
+        /// <param name="localPath">local folder path</param>
+        public void DownloadFolder(string cloudPath, string folderPath, string localPath)
+        {
+            while (cloudPath.LastIndexOf("/") == cloudPath.Length - 1)//remove last "/"
+            {
+                cloudPath = cloudPath.Substring(0, cloudPath.Length - 1);
+            }
+            cloudPath += "/";
+            localPath = localPath.Replace("\\", "/");
+            if (localPath.LastIndexOf("/") != localPath.Length - 1)
+                localPath += "/";
+            Console.WriteLine($"[disk download folder]download {cloudPath} to {localPath}");
+
+            var client = GetImapClient();
+            var folder = client.GetFolder(folderPath);
+            folder.Open(FolderAccess.ReadOnly);
+
+            Console.WriteLine($"find {folder.Count} files in this folder");
+            Console.WriteLine($"fatching mails");
+            var all = folder.Fetch(0,-1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+
+            foreach (string f in GetFileList(folderPath))
+            {
+                if(f.IndexOf(cloudPath) == 0)//match folder
+                {
+                    string localFile = localPath + f.Substring(cloudPath.Length);
+                    localPath = localPath.Replace("\\", "/");
+                    int l = localFile.LastIndexOf("/");
+                    Directory.CreateDirectory(localFile.Substring(0, l));
+                    DownloadFile(folderPath, f, localFile, client, all, folder);
+                }
+            }
         }
     }
 }

@@ -49,6 +49,10 @@ download a file from net disk.
 upload a folder to net disk and clear all wrong files in this email folder.
 Notice: if file is exist on cloud, it will not be uploaded.
 
+-df <email folder> <local folder> <folder name on cloud>:
+download a folder from net disk.
+Notice: local file must be not exist.
+
 All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                         return;
 
@@ -128,13 +132,28 @@ All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                         var ufdisk = Settings.GetDisk();
                         if (ufdisk == null) return;
                         if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
-                        Console.WriteLine($"Download file {args[3]} from {args[1]} as {args[2]} ...");
+                        Console.WriteLine($"upload folder {args[3]} to {args[1]} as {args[2]} ...");
                         if (args[3].IndexOf("<") >= 0)
                         {
-                            Console.WriteLine($"error! file name do not contain '<'");
+                            Console.WriteLine($"error! folder name do not contain '<'");
                             return;
                         }
                         ufdisk.UploadFolder(args[3], args[1], args[2], (int)Settings.maxBlock * 1024 * 1024);
+                        Console.WriteLine("done! all files uploaded!");
+                        return;
+
+                    case "-df":
+                        var dfdisk = Settings.GetDisk();
+                        if (dfdisk == null) return;
+                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        Console.WriteLine($"Download folder {args[3]} from {args[1]} as {args[2]} ...");
+                        if (args[3].IndexOf("<") >= 0)
+                        {
+                            Console.WriteLine($"error! folder name do not contain '<'");
+                            return;
+                        }
+                        dfdisk.DownloadFolder(args[3], args[1], args[2]);
+                        Console.WriteLine("done! all files downloaded!");
                         return;
 
                     default:
