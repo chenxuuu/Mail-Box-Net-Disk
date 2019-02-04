@@ -36,20 +36,27 @@ namespace maildisk.apis
             Task.Run(() => {
                 while(true)
                 {
-                    if (lastFolder != null)
+                    try
                     {
-                        var client = GetImapClient();
-                        var f = client.GetFolder(lastFolder);
-                        f.Open(FolderAccess.ReadWrite);
-                        var uids = f.Search(SearchQuery.NotSeen);
-                        foreach (var u in uids)
+                        if (lastFolder != null)
                         {
-                            f.AddFlags(u, MessageFlags.Seen, true);
+                            var client = GetImapClient();
+                            var f = client.GetFolder(lastFolder);
+                            f.Open(FolderAccess.ReadWrite);
+                            var uids = f.Search(SearchQuery.NotSeen);
+                            foreach (var u in uids)
+                            {
+                                f.AddFlags(u, MessageFlags.Seen, true);
 
-                            Console.WriteLine($"[disk check]add a seen flag");
+                                Console.WriteLine($"[disk check]add a seen flag");
 
+                            }
+                            client.Disconnect(true);
                         }
-                        client.Disconnect(true);
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine($"[disk check]fetch error: {e.Message}");
                     }
                     Task.Delay(30 * 1000).Wait();
                 }
