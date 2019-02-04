@@ -105,7 +105,7 @@ All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                     case "-u":
                         var udisk = Settings.GetDisk();
                         if (udisk == null) return;
-                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        if (args.Length < 4) { Console.WriteLine("wrong args count"); return; }
                         Console.WriteLine($"uploading file {args[2]} to {args[1]} as {args[3]} ...");
                         if(args[3].IndexOf("<")>=0)
                         {
@@ -118,7 +118,7 @@ All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                     case "-d":
                         var ddisk = Settings.GetDisk();
                         if (ddisk == null) return;
-                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        if (args.Length < 4) { Console.WriteLine("wrong args count"); return; }
                         Console.WriteLine($"Download file {args[3]} from {args[1]} as {args[2]} ...");
                         if (args[3].IndexOf("<") >= 0)
                         {
@@ -131,13 +131,14 @@ All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                     case "-uf":
                         var ufdisk = Settings.GetDisk();
                         if (ufdisk == null) return;
-                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        if (args.Length < 4) { Console.WriteLine("wrong args count"); return; }
                         Console.WriteLine($"upload folder {args[3]} to {args[1]} as {args[2]} ...");
                         if (args[3].IndexOf("<") >= 0)
                         {
                             Console.WriteLine($"error! folder name do not contain '<'");
                             return;
                         }
+                        ufdisk.RefreshFiles(args[1]);
                         ufdisk.UploadFolder(args[3], args[1], args[2], (int)Settings.maxBlock * 1024 * 1024);
                         Console.WriteLine("done! all files uploaded!");
                         return;
@@ -145,7 +146,7 @@ All file and path should not contain '<'".Replace("\r\n","\r\n\t"));
                     case "-df":
                         var dfdisk = Settings.GetDisk();
                         if (dfdisk == null) return;
-                        if (args.Length < 3) { Console.WriteLine("wrong args count"); return; }
+                        if (args.Length < 4) { Console.WriteLine("wrong args count"); return; }
                         Console.WriteLine($"Download folder {args[3]} from {args[1]} as {args[2]} ...");
                         if (args[3].IndexOf("<") >= 0)
                         {

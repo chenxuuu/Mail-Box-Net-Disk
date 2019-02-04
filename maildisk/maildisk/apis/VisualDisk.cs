@@ -208,7 +208,7 @@ namespace maildisk.apis
                             string name = m.Envelope.Subject.Substring("[mailDisk]".Length);
                             Console.WriteLine($"checking file {name}");
                             MatchCollection mc = Regex.Matches(name, @"(.+?)<(\d+?)/(\d+?)>");
-                            if (mc.Count > 0 && mc[0].Groups.Count == 3)
+                            if (mc.Count > 0 && mc[0].Groups.Count == 4)
                                 name = mc[0].Groups[1].ToString();
                             if (!files.Contains(name))
                             {
@@ -523,6 +523,16 @@ namespace maildisk.apis
             Console.WriteLine($"[disk folder]folder {path} is created.");
         }
 
+        private ArrayList tempFiles = new ArrayList();
+        public void RefreshFiles(string folderPath)
+        {
+            tempFiles.AddRange(GetFileList(folderPath));
+            foreach (var s in tempFiles)
+            {
+                Console.WriteLine(s);
+            }
+        }
+
         /// <summary>
         /// upload a folder
         /// </summary>
@@ -542,7 +552,7 @@ namespace maildisk.apis
                 Console.WriteLine($"error! folder {localPath} not exist!");
                 return;
             }
-            
+
             foreach (var f in Directory.GetDirectories(localPath))
             {
                 int l = f.LastIndexOf("/");
@@ -555,7 +565,19 @@ namespace maildisk.apis
                 int l = f.LastIndexOf("/");
                 if (l == -1)
                     l = f.LastIndexOf("\\");
-                UploadBigFile(cloudPath + f.Substring(l), folderPath, f, blockSize);
+
+                string fileName = cloudPath + f.Substring(l);
+                fileName = fileName.Replace("\\", "/");
+                while (fileName.IndexOf("/") == 0)//remove the "/" head
+                {
+                    fileName = fileName.Substring(1);
+                }
+
+                if (tempFiles.Contains(fileName))
+                    Console.WriteLine($"[disk upload folder] file {fileName} is" +
+                        $" already exist in mail disk, skip upload.");
+                else
+                    UploadBigFile(fileName, folderPath, f, blockSize);
             }
         }
 
