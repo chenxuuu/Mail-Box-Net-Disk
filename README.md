@@ -4,6 +4,12 @@
 
 利用邮箱实现网盘功能的工具。
 
+本项目有两个仓库，不过建议在GitHub进行star/pr操作：
+
+GitHub：[https://github.com/chenxuuu/Mail-Box-Net-Disk](https://github.com/chenxuuu/Mail-Box-Net-Disk)
+
+git.osc：[https://gitee.com/chenxuuu/Mail-Box-Net-Disk](https://gitee.com/chenxuuu/Mail-Box-Net-Disk)
+
 ## 原理
 
 利用邮箱附件作为文件存储空间，实现文件的上传下载功能
