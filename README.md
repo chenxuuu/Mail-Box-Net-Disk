@@ -10,6 +10,10 @@ GitHub：[https://github.com/chenxuuu/Mail-Box-Net-Disk](https://github.com/chen
 
 git.osc：[https://gitee.com/chenxuuu/Mail-Box-Net-Disk](https://gitee.com/chenxuuu/Mail-Box-Net-Disk)
 
+## 下载
+
+每次发布版本，会自动在GitHub的release页更新：[点击前往](https://github.com/chenxuuu/Mail-Box-Net-Disk/releases/latest)
+
 ## 原理
 
 利用邮箱附件作为文件存储空间，实现文件的上传下载功能
