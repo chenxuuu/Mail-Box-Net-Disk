@@ -1,6 +1,6 @@
 language: csharp
 mono: none
-dotnet: 2.1.502
+dotnet: 3.0.100
 script:
   - cd maildisk
   - dotnet publish -r win-x86
@@ -11,7 +11,7 @@ script:
   - dotnet publish -r linux-arm
   - dotnet publish -r linux-arm64
   - dotnet publish -r osx-x64
-  - cd maildisk/bin/Debug/netcoreapp2.1/
+  - cd maildisk/bin/Debug/netcoreapp3.0/
   - tar -zcvf ../../../../../linux-x64.tar.gz linux-x64/publish/
   - tar -zcvf ../../../../../linux-arm.tar.gz linux-arm/publish/
   - tar -zcvf ../../../../../linux-arm64.tar.gz linux-arm64/publish/
