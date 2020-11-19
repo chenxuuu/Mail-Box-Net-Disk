@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -9,8 +10,13 @@ namespace maildisk.apis
 {
     class Settings
     {
-        private static string path = AppDomain.CurrentDomain.BaseDirectory;
         public static long maxBlock = 0;
+
+        private static string GetBasePath()
+        {
+            using var processModule = Process.GetCurrentProcess().MainModule;
+            return Path.GetDirectoryName(processModule?.FileName);
+        }
 
         /// <summary>
         /// check setting file exist
@@ -18,7 +24,7 @@ namespace maildisk.apis
         /// <returns>file exist</returns>
         public static bool CheckSetings()
         {
-            return File.Exists(path + "/mail.json");
+            return File.Exists(GetBasePath() + "/mail.json");
         }
 
         /// <summary>
@@ -50,7 +56,7 @@ namespace maildisk.apis
             Console.Write("Max size for each file(MiB):");
             o["block"] = Console.ReadLine();
 
-            File.WriteAllText(path + "/mail.json", o.ToString());
+            File.WriteAllText(GetBasePath() + "/mail.json", o.ToString());
 
             Console.WriteLine("\r\ndone! enjoy!");
         }
@@ -63,7 +69,7 @@ namespace maildisk.apis
         {
             if (CheckSetings())
             {
-                string s = File.ReadAllText(path + "/mail.json");
+                string s = File.ReadAllText(GetBasePath() + "/mail.json");
                 JObject jo = (JObject)JsonConvert.DeserializeObject(s);
                 var disk = new VisualDisk(
                     (string)jo["imap"],

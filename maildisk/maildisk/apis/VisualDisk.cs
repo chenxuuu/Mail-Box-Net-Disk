@@ -1,4 +1,4 @@
-﻿using MailKit;
+using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Search;
@@ -100,8 +100,8 @@ namespace maildisk.apis
 
             var client = GetImapClient();
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(address));
-            message.To.Add(new MailboxAddress(address));
+            message.From.Add(MailboxAddress.Parse(address));
+            message.To.Add(MailboxAddress.Parse(address));
             message.Subject = "[mailDisk]" + fileName;
             var body = new TextPart("plain")
             {
