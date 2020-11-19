@@ -1,9 +1,10 @@
-﻿using MailKit;
+using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using System;
 using maildisk.apis;
 using System.IO;
+using System.Text;
 
 namespace maildisk
 {

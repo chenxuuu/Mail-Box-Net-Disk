@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -250,7 +251,11 @@ namespace maildisk.apis
             }
             if(client == null)
                 client = GetImapClient();
-            if(all == null)
+
+            var invalidFileName = Path.GetInvalidFileNameChars();
+            fileName = invalidFileName.Aggregate(fileName, (o, r) => (o.Replace(r.ToString(), string.Empty)));
+
+            if (all == null)
             {
                 folder = client.GetFolder(folderPath);
                 folder.Open(FolderAccess.ReadOnly);
