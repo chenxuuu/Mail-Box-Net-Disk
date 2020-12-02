@@ -1,6 +1,11 @@
 name: build
 
-on: [push,pull_request]
+  push:
+    paths:
+      - 'maildisk/**'
+  pull_request:
+    paths:
+      - 'maildisk/**'
 
 jobs:
   build:
