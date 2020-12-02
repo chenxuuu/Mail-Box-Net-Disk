@@ -3,14 +3,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <Authors>chenxu</Authors>
+    <Authors>chenxuuu</Authors>
     <Company>chenxublog.com</Company>
     <Description>make your e-mail become a netdisk!</Description>
     <Version>1.0.2.3</Version>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
