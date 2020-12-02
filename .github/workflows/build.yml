@@ -3,10 +3,16 @@ name: build
 on:
   push:
     paths:
-      - 'maildisk/**'
+      - 'maildisk-pkg/**'
   pull_request:
     paths:
-      - 'maildisk/**'
+      - 'maildisk-pkg/**'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
 
 jobs:
   build:
@@ -33,31 +39,31 @@ jobs:
           dotnet publish -r osx-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
       - name: create packages
         run: |
-          mkdir maildisk
-          mv maildisk/maildisk/bin/Debug/net5.0/win-x86/publish/*
-          7z a win-x86.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/win-x64/publish/*
-          7z a win-x64.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/win-arm/publish/*
-          7z a win-arm.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/win-arm64/publish/*
-          7z a win-arm64.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/linux-x64/publish/*
-          7z a linux-x64.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm/publish/*
-          7z a linux-arm.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm64/publish/*
-          7z a linux-arm64.7z maildisk/*
-          rm maildisk/*
-          mv maildisk/maildisk/bin/Debug/net5.0/osx-x64/publish/*
-          7z a osx-x64.7z maildisk/*
-      - uses: actions/upload-artifact@v1
+          mkdir maildisk-pkg
+          mv maildisk/maildisk/bin/Debug/net5.0/win-x86/publish/* maildisk-pkg/
+          7z a win-x86.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/win-x64/publish/* maildisk-pkg/
+          7z a win-x64.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/win-arm/publish/* maildisk-pkg/
+          7z a win-arm.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/win-arm64/publish/* maildisk-pkg/
+          7z a win-arm64.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/linux-x64/publish/* maildisk-pkg/
+          7z a linux-x64.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm/publish/* maildisk-pkg/
+          7z a linux-arm.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm64/publish/* maildisk-pkg/
+          7z a linux-arm64.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv maildisk/maildisk/bin/Debug/net5.0/osx-x64/publish/* maildisk-pkg/
+          7z a osx-x64.7z maildisk-pkg/*
+      - uses: actions/upload-artifact@v2
         with:
           name: artifact
           path: |
