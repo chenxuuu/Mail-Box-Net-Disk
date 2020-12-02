@@ -2,18 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Authors>chenxu</Authors>
     <Company>chenxublog.com</Company>
     <Description>make your e-mail become a netdisk!</Description>
     <PublishTrimmed>true</PublishTrimmed>
-    <PublishSingleFile>true</PublishSingleFile>
     <Version>1.0.2.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="2.9.0" />
+    <PackageReference Include="MailKit" Version="2.10.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Spectre.Console" Version="0.31.0" />
   </ItemGroup>
-
 </Project>
