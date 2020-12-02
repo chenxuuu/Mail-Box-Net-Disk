@@ -1,0 +1,68 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel: []
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: environment prepare
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-5.0
+          sudo apt-get install -y p7zip-full
+      - name: build
+        run: |
+          cd maildisk
+          dotnet publish -r win-x86 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r win-arm -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r win-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r linux-arm -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r linux-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r osx-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+      - name: create packages
+        run: |
+          mkdir maildisk
+          mv maildisk/maildisk/bin/Debug/net5.0/win-x86/publish/*
+          7z a win-x86.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/win-x64/publish/*
+          7z a win-x64.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/win-arm/publish/*
+          7z a win-arm.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/win-arm64/publish/*
+          7z a win-arm64.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/linux-x64/publish/*
+          7z a linux-x64.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm/publish/*
+          7z a linux-arm.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm64/publish/*
+          7z a linux-arm64.7z maildisk/*
+          rm maildisk/*
+          mv maildisk/maildisk/bin/Debug/net5.0/osx-x64/publish/*
+          7z a osx-x64.7z maildisk/*
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact
+          path: |
+            win-x86.7z
+            win-x64.7z
+            win-arm.7z
+            win-arm64.7z
+            linux-x64.7z
+            linux-arm.7z
+            linux-arm64.7z
+            osx-x64.7z

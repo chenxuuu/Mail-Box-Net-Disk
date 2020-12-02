@@ -6,7 +6,6 @@
     <Authors>chenxu</Authors>
     <Company>chenxublog.com</Company>
     <Description>make your e-mail become a netdisk!</Description>
-    <PublishTrimmed>true</PublishTrimmed>
     <Version>1.0.2.3</Version>
   </PropertyGroup>
 
