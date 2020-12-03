@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:MailDisk_GUI.languages" 
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <system:String x:Key="AppName">MailDisk</system:String>
+    <system:String x:Key="Files">Files</system:String>
+    <system:String x:Key="Jobs">Jobs</system:String>
+    <system:String x:Key="Settings">Settings</system:String>
+    <system:String x:Key="About">About</system:String>
+</ResourceDictionary>
