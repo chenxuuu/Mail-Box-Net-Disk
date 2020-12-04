@@ -1,6 +1,7 @@
 # 邮箱网盘
 
 ![build](https://github.com/chenxuuu/Mail-Box-Net-Disk/workflows/build/badge.svg)
+![Build GUI client](https://github.com/chenxuuu/Mail-Box-Net-Disk/workflows/Build%20GUI%20client/badge.svg)
 
 利用邮箱实现网盘功能的工具。
 
