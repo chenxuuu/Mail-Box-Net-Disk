@@ -3,10 +3,11 @@ name: build
 on:
   push:
     paths:
-      - 'maildisk-pkg/**'
+      - 'maildisk/**'
+      - '.github/workflows/**'
   pull_request:
     paths:
-      - 'maildisk-pkg/**'
+      - 'maildisk/**'
   workflow_dispatch:
     inputs:
       logLevel:
