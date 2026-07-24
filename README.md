@@ -1,79 +1,125 @@
 # 邮箱网盘
 
-![build](https://github.com/chenxuuu/Mail-Box-Net-Disk/workflows/build/badge.svg)
-![Build GUI client](https://github.com/chenxuuu/Mail-Box-Net-Disk/workflows/Build%20GUI%20client/badge.svg)
+[English](README.en.md)
 
-利用邮箱实现网盘功能的工具。
+将邮箱变成你的个人网盘。利用 IMAP/SMTP 协议，把文件存储为邮件附件，实现文件的上传、下载和管理。
 
-本项目有两个仓库，不过建议在GitHub进行star/pr操作：
+## 特性
 
-GitHub：[https://github.com/chenxuuu/Mail-Box-Net-Disk](https://github.com/chenxuuu/Mail-Box-Net-Disk)
+- 支持任意 IMAP/SMTP 协议的邮箱（QQ、163、Gmail 等）
+- 大文件自动分卷存储，下载时自动合并
+- SHA256 完整性校验
+- 文件夹上传/下载（递归）
+- 自动检测系统语言，显示中文或英文界面
+- 跨平台（Windows / macOS / Linux）
 
-git.osc：[https://gitee.com/chenxuuu/Mail-Box-Net-Disk](https://gitee.com/chenxuuu/Mail-Box-Net-Disk)
+## 快速开始
 
-## 下载
+### 1. 安装 .NET 10 SDK
 
-每次发布版本，会自动在GitHub的release页更新：[点击前往](https://github.com/chenxuuu/Mail-Box-Net-Disk/releases/latest)
+从 [dotnet.microsoft.com](https://dotnet.microsoft.com/download) 下载安装。
+
+### 2. 构建
+
+```bash
+git clone https://github.com/chenxuuu/Mail-Box-Net-Disk.git
+cd Mail-Box-Net-Disk/maildisk
+dotnet build maildisk.sln
+```
+
+### 3. 配置
+
+```bash
+dotnet run --project src/MailDisk -- -s
+```
+
+按提示输入 IMAP 服务器信息。配置保存在可执行文件同目录的 `mail.json`。
+
+> QQ 邮箱用户需在 [mail.qq.com](https://mail.qq.com) 设置中生成授权码，并用授权码作为密码。
+
+### 4. 使用
+
+```bash
+dotnet run --project src/MailDisk -- -h
+```
+
+## 命令参考
+
+| 命令 | 参数 | 说明 |
+|---|---|---|
+| `-h` | 无 | 查看帮助 |
+| `-s` | 无 | 交互式配置邮箱参数 |
+| `-lf` | 无 | 列出所有邮件文件夹 |
+| `-cf` | `<文件夹名>` | 创建邮件文件夹 |
+| `-l` | `<邮件文件夹>` | 列出云端文件 |
+| `-c` | `<邮件文件夹>` | 清理不完整的分卷文件 |
+| `-u` | `<邮件文件夹> <本地> <云端>` | 上传文件 |
+| `-d` | `<邮件文件夹> <本地> <云端>` | 下载文件 |
+| `-uf` | `<邮件文件夹> <本地> <云端>` | 上传文件夹 |
+| `-df` | `<邮件文件夹> <本地> <云端>` | 下载文件夹 |
+
+> 所有文件名和路径不能包含 `<` 字符。
+
+## 配置文件
+
+```json
+{
+  "imap": "imap.example.com",
+  "port": 993,
+  "ssl": true,
+  "account": "user@example.com",
+  "password": "your-password",
+  "address": "user@example.com",
+  "block": "25",
+  "skipSslVerify": false
+}
+```
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `imap` | 是 | IMAP 服务器地址 |
+| `port` | 是 | IMAP 端口（通常 993） |
+| `ssl` | 是 | 是否启用 SSL |
+| `account` | 是 | 邮箱账号 |
+| `password` | 是 | 密码或授权码 |
+| `address` | 是 | 发件人邮箱地址 |
+| `block` | 是 | 单个邮件最大附件大小（MiB），超过自动分卷 |
+| `skipSslVerify` | 否 | 跳过 SSL 证书验证（不推荐） |
 
 ## 原理
 
-利用邮箱附件作为文件存储空间，实现文件的上传下载功能
+文件以邮件附件形式存储：
 
-## 功能
+- **小文件**（≤ block 大小）：一封邮件，主题 `[mailDisk]文件名`
+- **大文件**（> block 大小）：多封邮件分卷，主题 `[mailDisk]文件名<1/N>` … `<N/N>`
+- 每个附件固定命名为 `attachment.netdiskfile`，Base64 编码
+- 新上传文件附带 `X-MailDisk-*` 自定义邮件头，记录大小和 SHA256 校验值
 
-- [x] 支持smtp/imap协议的邮箱
-- [x] 读取文件夹列表/新建文件夹
-- [x] 上传小于限制大小的文件
-- [x] 读取已存在的文件
-- [x] 上传大文件自动分卷
-- [x] 识别分卷上传的文件，下载自动合并
-- [x] 优化文件搜索速度
-- [x] 完成命令行工具成品
-- [x] 支持文件夹上传
-- [x] 支持文件夹下载
-- [ ] win系统下的gui管理工具
-- [ ] 其他系统下的gui管理工具
+详见 [docs/file-format.md](docs/file-format.md)。
 
-## 命令列表
+## 项目结构
 
-```cmd
-maildisk -h 查看命令帮助
-
-         -s
-         更改邮箱参数设置
-
-         -lf
-         列出邮箱的所有邮件文件夹
-
-         -cf <邮件文件夹名>
-         新建一个邮件文件夹
-
-         -l <邮件文件夹>
-         列出所有该邮件文件夹下的文件
-
-         -c <邮件文件夹>
-         清除所有该邮件文件夹下不完整的分卷文件
-
-         -u <邮件文件夹> <本地文件> <云端文件>
-         上传文件
-
-         -d <邮件文件夹> <本地文件> <云端文件>
-         下载文件
-
-         -uf <邮件文件夹> <本地文件夹> <云端虚拟文件夹路径>
-         上传文件夹，并清理不完整分卷的邮件
-         注意：如果云端存在该文件，则不会上传
-
-         -df <邮件文件夹> <本地文件夹> <云端虚拟文件夹路径>
-         下载文件夹
-
-         所有文件和路径都不能包含'<'符号
+```
+maildisk/
+├── maildisk.sln
+├── src/MailDisk/
+│   ├── Program.cs              入口 & 命令路由
+│   ├── Locale.cs               中英文国际化
+│   ├── Configuration/          配置管理
+│   ├── Models/                 数据模型
+│   ├── Services/               业务逻辑（IMAP、上传下载、校验）
+│   └── Commands/               每个 CLI 命令一个文件
+└── docs/                       设计文档
 ```
 
-## 加入该项目
+## 技术栈
 
-如果你愿意忍受我写的智障代码，那么欢迎pr
+- .NET 10
+- MailKit（IMAP/SMTP）
+- Spectre.Console（CLI 渲染）
+- System.Text.Json
 
-## 其他
+## 许可
 
-该项目的代码可以随意引用，但请保留指向该项目的说明文字
+代码可随意引用，请保留指向本项目的说明文字。
+

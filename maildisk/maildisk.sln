@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maildisk", "maildisk\maildisk.csproj", "{40D245C7-6840-4A9B-AEA9-4F9503013CC0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailDisk", "src\MailDisk\MailDisk.csproj", "{40D245C7-6840-4A9B-AEA9-4F9503013CC0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
