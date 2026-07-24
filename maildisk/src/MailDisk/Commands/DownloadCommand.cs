@@ -16,11 +16,26 @@ internal static class DownloadCommand
 			return 1;
 		}
 
-		await AnsiConsole.Status()
-			.Spinner(Spinner.Known.Dots)
-			.StartAsync($"{Locale.DL_Downloading} [cyan]{Markup.Escape(folderPath)}/{Markup.Escape(cloudName)}[/] → [cyan]{Markup.Escape(localFile)}[/]...", async ctx =>
+		await AnsiConsole.Progress()
+			.AutoClear(false)
+			.StartAsync(async ctx =>
 			{
-				await disk.DownloadFileAsync(cloudName, folderPath, localFile);
+				var task = ctx.AddTask($"{Locale.DL_Downloading} [cyan]{Markup.Escape(folderPath)}/{Markup.Escape(cloudName)}[/] → [cyan]{Markup.Escape(localFile)}[/]", autoStart: true);
+				task.IsIndeterminate();
+				var lastTotal = 0;
+
+				await disk.DownloadFileAsync(cloudName, folderPath, localFile,
+					onProgress: (current, total) =>
+					{
+						if (total != lastTotal)
+						{
+							task.MaxValue(total);
+							task.IsIndeterminate(false);
+							lastTotal = total;
+						}
+						task.Value(current);
+					});
+				task.Value(task.MaxValue);
 			});
 
 		AnsiConsole.MarkupLine($"[green]{Locale.DL_Done}: [cyan]{Markup.Escape(localFile)}[/][/]");

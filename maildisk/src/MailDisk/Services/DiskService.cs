@@ -302,10 +302,9 @@ public class DiskService
 		if (File.Exists(localPath))
 			throw new IOException($"File already exists: {localPath}");
 
-		var invalidChars = Path.GetInvalidFileNameChars();
-		cloudName = invalidChars.Aggregate(cloudName, (s, c) => s.Replace(c.ToString(), ""));
+		cloudName = NormalizeCloudPath(cloudName);
 
-		var summaries = await _imap.FetchSummariesAsync(folderPath, ct: ct);
+		var summaries = await _imap.FetchSummariesAsync(folderPath, onProgress, ct);
 
 		// 查找匹配的文件邮件
 		var matches = summaries.Where(m =>
