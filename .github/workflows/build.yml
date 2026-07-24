@@ -32,12 +32,11 @@ jobs:
           cd maildisk/src/MailDisk
           dotnet publish -r win-x86 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
-          dotnet publish -r win-arm -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r win-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
-          dotnet publish -r linux-arm -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r linux-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r osx-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
+          dotnet publish -r osx-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
       - name: create packages
         run: |
           mkdir maildisk-pkg
@@ -48,32 +47,28 @@ jobs:
           mv $PUB/win-x64/publish/* maildisk-pkg/
           7z a win-x64.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv $PUB/win-arm/publish/* maildisk-pkg/
-          7z a win-arm.7z maildisk-pkg/*
-          rm maildisk-pkg/*
           mv $PUB/win-arm64/publish/* maildisk-pkg/
           7z a win-arm64.7z maildisk-pkg/*
           rm maildisk-pkg/*
           mv $PUB/linux-x64/publish/* maildisk-pkg/
           7z a linux-x64.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv $PUB/linux-arm/publish/* maildisk-pkg/
-          7z a linux-arm.7z maildisk-pkg/*
-          rm maildisk-pkg/*
           mv $PUB/linux-arm64/publish/* maildisk-pkg/
           7z a linux-arm64.7z maildisk-pkg/*
           rm maildisk-pkg/*
           mv $PUB/osx-x64/publish/* maildisk-pkg/
           7z a osx-x64.7z maildisk-pkg/*
+          rm maildisk-pkg/*
+          mv $PUB/osx-arm64/publish/* maildisk-pkg/
+          7z a osx-arm64.7z maildisk-pkg/*
       - uses: actions/upload-artifact@v4
         with:
           name: artifact
           path: |
             win-x86.7z
             win-x64.7z
-            win-arm.7z
             win-arm64.7z
             linux-x64.7z
-            linux-arm.7z
             linux-arm64.7z
             osx-x64.7z
+            osx-arm64.7z
