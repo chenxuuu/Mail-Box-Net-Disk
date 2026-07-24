@@ -47,10 +47,12 @@ src/MailDisk/
 ├── Configuration/
 │   └── SettingsManager.cs        # mail.json 配置的读写
 ├── Models/
-│   └── DiskFileEntry.cs          # 文件条目模型（名称、大小、是否分卷）
+│   ├── DiskFileEntry.cs          # 文件条目模型（名称、大小、是否分卷）
+│   └── FolderCache.cs            # 缓存模型（文件夹 → UID 映射）
 ├── Services/
 │   ├── ImapService.cs            # IMAP 连接管理 & 邮件操作
 │   ├── DiskService.cs            # 核心网盘逻辑（上传/下载/列表/清理）
+│   ├── CacheService.cs           # 文件索引缓存（cache.json 读写）
 │   └── ChecksumService.cs        # SHA256 计算与校验
 └── Commands/
     ├── SetupCommand.cs           # -s 配置向导
@@ -122,7 +124,9 @@ Command → DiskService.UploadFile()
 ### 下载流程
 ```
 Command → DiskService.DownloadFile()
-  ├→ ImapService.SearchMails("[mailDisk]filename*")
+  ├→ CacheService.GetFolder() → STATUS 校验缓存
+  ├→ 缓存命中 → ImapService.FetchByUids() (按 UID 直取，跳过遍历)
+  ├→ 缓存失效 → ImapService.FetchSummaries() (全量拉取 + 重建缓存)
   ├→ 解析主题，识别单文件/分卷
   ├→ ImapService.GetMessage() ×1 或 ×N
   ├→ 拼接分卷 → File.Write
@@ -135,5 +139,36 @@ Command → DiskService.ListFiles()
   ├→ ImapService.FetchSummaries(folder)
   ├→ 过滤 Subject 含 [mailDisk] 的邮件
   ├→ 识别分卷文件 → 检查完整性
-  └→ 返回 DiskFileEntry[] (去重，合并分卷)
+  ├→ 返回 DiskFileEntry[] (去重，合并分卷)
+  └→ RebuildCacheFromSummaries() (自动更新缓存)
 ```
+
+## 文件索引缓存
+
+为解决每次下载都需遍历整个文件夹的问题，引入了本地索引缓存机制。
+
+### 缓存文件
+`cache.json` 与 `mail.json` 同目录（`AppContext.BaseDirectory`），JSON 格式：
+```json
+{
+  "文件夹名": {
+    "uidValidity": 12345,
+    "uidNext": 67890,
+    "files": {
+      "subdir/file.txt": { "chunks": [{ "u": 12340, "i": 1 }] },
+      "video.mp4": { "chunks": [{ "u": 12341, "i": 1 }, { "u": 12342, "i": 2 }] }
+    }
+  }
+}
+```
+
+### 缓存策略
+- **命中**：`STATUS` 获取当前 `UidValidity` / `UidNext`，与缓存比对一致 → 按 UID 直取邮件，跳过遍历
+- **失效**：`UidValidity` 或 `UidNext` 变化 → 全量拉取摘要，显示"正在刷新文件索引"进度条，重建缓存
+- **自动建缓存**：`-l` 列出文件、`-d` 下载文件时均会自动构建/更新缓存
+- **自动失效**：`-u` 上传文件后对应文件夹缓存被清除，下次访问时重建
+
+### 关键方法
+- `ImapService.StatusAsync()` — 快速获取文件夹 `UidValidity` / `UidNext`，不拉取邮件
+- `ImapService.FetchByUidsAsync()` — 按指定 UID 列表直接获取邮件摘要
+- `CacheService` — `cache.json` 的读写，提供 `GetFolder` / `SetFolder` / `InvalidateFolder`

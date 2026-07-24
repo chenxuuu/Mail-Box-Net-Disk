@@ -72,6 +72,7 @@ class Program
 		// 服务
 		services.AddSingleton<ImapService>();
 		services.AddSingleton<ChecksumService>();
+		services.AddSingleton<CacheService>();
 		services.AddSingleton<DiskService>();
 
 		return services.BuildServiceProvider();

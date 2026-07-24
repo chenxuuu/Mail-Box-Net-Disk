@@ -29,9 +29,11 @@ internal static class CleanCommand
 					if (total != lastTotal)
 					{
 						task.MaxValue(total);
+						task.IsIndeterminate(false);
 						lastTotal = total;
 					}
 					task.Value(current);
+					task.Description = $"{Locale.CL_Cleaning} [cyan]{Markup.Escape(folderPath)}[/] ({current}/{total})";
 				});
 				task.Value(task.MaxValue);
 			});

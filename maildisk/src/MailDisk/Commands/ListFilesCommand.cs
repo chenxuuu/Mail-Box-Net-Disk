@@ -30,9 +30,11 @@ internal static class ListFilesCommand
 					if (total != lastTotal)
 					{
 						task.MaxValue(total);
+						task.IsIndeterminate(false);
 						lastTotal = total;
 					}
 					task.Value(current);
+					task.Description = $"{Locale.LS_Fetching} [cyan]{Markup.Escape(folderPath)}[/] ({current}/{total})";
 				}));
 				task.Value(task.MaxValue);
 			});

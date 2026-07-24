@@ -20,9 +20,10 @@ internal static class DownloadCommand
 			.AutoClear(false)
 			.StartAsync(async ctx =>
 			{
-				var task = ctx.AddTask($"{Locale.DL_Downloading} [cyan]{Markup.Escape(folderPath)}/{Markup.Escape(cloudName)}[/] → [cyan]{Markup.Escape(localFile)}[/]", autoStart: true);
+				var task = ctx.AddTask($"{Locale.DL_Downloading} [cyan]{Markup.Escape(cloudName)}[/]", autoStart: true);
 				task.IsIndeterminate();
 				var lastTotal = 0;
+				var isRefreshing = false;
 
 				await disk.DownloadFileAsync(cloudName, folderPath, localFile,
 					onProgress: (current, total) =>
@@ -34,7 +35,21 @@ internal static class DownloadCommand
 							lastTotal = total;
 						}
 						task.Value(current);
+						if (isRefreshing)
+							task.Description = $"{Locale.DL_Refreshing} [cyan]{Markup.Escape(folderPath)}[/] ({current}/{total})";
+						else if (total > 1)
+							task.Description = $"{Locale.DL_Downloading} [cyan]{Markup.Escape(cloudName)}[/] ({current}/{total})";
+						else
+							task.Description = $"{Locale.DL_Downloading} [cyan]{Markup.Escape(cloudName)}[/] → [cyan]{Markup.Escape(localFile)}[/]";
+					},
+					onRefreshing: () =>
+					{
+						isRefreshing = true;
+						task.Description = $"{Locale.DL_Refreshing} [cyan]{Markup.Escape(folderPath)}[/]";
+						task.IsIndeterminate();
+						lastTotal = 0;
 					});
+				task.Description = $"{Locale.DL_Done}: [cyan]{Markup.Escape(localFile)}[/]";
 				task.Value(task.MaxValue);
 			});
 

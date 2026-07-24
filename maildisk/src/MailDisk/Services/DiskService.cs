@@ -28,13 +28,15 @@ public class DiskService
 	private readonly AppSettings _settings;
 	private readonly ImapService _imap;
 	private readonly ChecksumService _checksum;
+	private readonly CacheService _cache;
 	private readonly ILogger<DiskService> _logger;
 
-	public DiskService(AppSettings settings, ImapService imap, ChecksumService checksum, ILogger<DiskService> logger)
+	public DiskService(AppSettings settings, ImapService imap, ChecksumService checksum, CacheService cache, ILogger<DiskService> logger)
 	{
 		_settings = settings;
 		_imap = imap;
 		_checksum = checksum;
+		_cache = cache;
 		_logger = logger;
 	}
 
@@ -77,8 +79,50 @@ public class DiskService
 		string folderPath, bool deleteMissing = false,
 		Action<int, int>? onProgress = null, CancellationToken ct = default)
 	{
+		// 需要清理时无法走缓存（需要实际 UID）
+		if (!deleteMissing)
+		{
+			var cached = _cache.GetFolder(folderPath);
+			if (cached != null)
+			{
+				try
+				{
+					var status = await _imap.StatusAsync(folderPath, ct);
+					if (status.UidValidity == cached.UidValidity && status.UidNext == cached.UidNext)
+					{
+						// 缓存命中，直接从缓存构建文件列表
+						onProgress?.Invoke(1, 1);
+						return cached.Files.Select(kv => new DiskFileEntry
+						{
+							Name = kv.Key,
+							IsChunked = kv.Value.Chunks.Count > 1,
+							ChunkCount = kv.Value.Chunks.Count
+						}).ToList();
+					}
+				}
+				catch
+				{
+					// STATUS 失败则回退到全量拉取
+				}
+			}
+		}
+
+		// 缓存失效，全量拉取
 		var summaries = await _imap.FetchSummariesAsync(folderPath, onProgress, ct);
 
+		// 重建缓存
+		RebuildCacheFromSummaries(folderPath, summaries);
+
+		return await ParseFileEntries(summaries, deleteMissing, folderPath, ct);
+	}
+
+	/// <summary>
+	/// 从邮件摘要列表解析文件条目
+	/// </summary>
+	private async Task<IReadOnlyList<DiskFileEntry>> ParseFileEntries(
+		IReadOnlyList<IMessageSummary> summaries, bool deleteMissing,
+		string folderPath, CancellationToken ct)
+	{
 		// 收集所有网盘邮件的主题名
 		var subjects = new List<string>();
 		foreach (var m in summaries)
@@ -186,6 +230,8 @@ public class DiskService
 			var message = CreateMailMessage(cloudName, stream, fileSize, sha256, 1, 1);
 			await _imap.AppendAsync(folderPath, message, ct);
 
+			_cache.InvalidateFolder(folderPath);
+
 			_logger.LogInformation("Uploaded: {Name} ({Size} bytes, SHA256={Hash})",
 				cloudName, fileSize, sha256[..8]);
 		}
@@ -217,6 +263,8 @@ public class DiskService
 				_logger.LogInformation("Uploaded chunk {I}/{Total}: {Name} (SHA256={Hash})",
 					i, steps, cloudName, chunkSha256[..8]);
 			}
+
+			_cache.InvalidateFolder(folderPath);
 		}
 	}
 
@@ -232,7 +280,12 @@ public class DiskService
 			throw new DirectoryNotFoundException($"Directory not found: {localPath}");
 
 		// 先获取已有文件列表，跳过已存在的
-		var existingFiles = await ListFilesAsync(folderPath, deleteMissing: true, ct: ct);
+		var existingFiles = await ListFilesAsync(folderPath, deleteMissing: true,
+			onProgress: (current, total) =>
+			{
+				onProgress?.Invoke(current, total, "");
+			},
+			ct: ct);
 		var existingNames = new HashSet<string>(existingFiles.Select(f => f.Name));
 
 		// 统计总文件数以显示进度
@@ -297,29 +350,59 @@ public class DiskService
 	/// </summary>
 	public async Task DownloadFileAsync(
 		string cloudName, string folderPath, string localPath,
-		CancellationToken ct = default, Action<int, int>? onProgress = null)
+		CancellationToken ct = default, Action<int, int>? onProgress = null,
+		Action? onRefreshing = null)
 	{
 		if (File.Exists(localPath))
 			throw new IOException($"File already exists: {localPath}");
 
 		cloudName = NormalizeCloudPath(cloudName);
 
-		var summaries = await _imap.FetchSummariesAsync(folderPath, onProgress, ct);
+		List<IMessageSummary> matches;
 
-		// 查找匹配的文件邮件
-		var matches = summaries.Where(m =>
+		// 尝试用缓存查找
+		var cached = _cache.GetFolder(folderPath);
+		bool cacheHit = false;
+		if (cached != null)
 		{
-			var subject = m.Envelope?.Subject ?? "";
-			if (!subject.StartsWith(SubjectPrefix)) return false;
-			var name = subject[SubjectPrefix.Length..];
-			if (name == cloudName) return true;
-			if (name.StartsWith($"{cloudName}<"))
+			try
 			{
-				var match = ChunkAnyRegex.Match(name);
-				return match.Success && match.Groups[1].Value == cloudName;
+				var status = await _imap.StatusAsync(folderPath, ct);
+				if (status.UidValidity == cached.UidValidity && status.UidNext == cached.UidNext)
+					cacheHit = true;
 			}
-			return false;
-		}).ToList();
+			catch
+			{
+				// STATUS 失败则回退到全量拉取
+			}
+		}
+
+		if (cacheHit && cached!.Files.TryGetValue(cloudName, out var fileEntry))
+		{
+			// 缓存命中：直接用 UID 拉取摘要
+			var uids = fileEntry.Chunks
+				.OrderBy(c => c.Index)
+				.Select(c => new UniqueId(cached.UidValidity, c.Uid))
+				.ToList();
+
+			var fetched = await _imap.FetchByUidsAsync(folderPath, uids, ct);
+			matches = fetched.ToList();
+
+			if (matches.Count == 0)
+				throw new FileNotFoundException($"File not found on cloud: {cloudName}");
+		}
+		else
+		{
+			// 缓存未命中，全量刷新
+			onRefreshing?.Invoke();
+			var summaries = await _imap.FetchSummariesAsync(folderPath, onProgress, ct);
+
+			// 重建缓存
+			RebuildCacheFromSummaries(folderPath, summaries);
+
+			// 查找匹配的文件
+			matches = FindMatchingSummaries(summaries, cloudName);
+		}
 
 		if (matches.Count == 0)
 			throw new FileNotFoundException($"File not found on cloud: {cloudName}");
@@ -344,6 +427,82 @@ public class DiskService
 		else
 		{
 			await DownloadChunkedFile(matches, folderPath, localPath, cloudName, ct, onProgress);
+		}
+	}
+
+	/// <summary>
+	/// 从摘要列表中匹配指定文件名的邮件
+	/// </summary>
+	private List<IMessageSummary> FindMatchingSummaries(IReadOnlyList<IMessageSummary> summaries, string cloudName)
+	{
+		return summaries.Where(m =>
+		{
+			var subject = m.Envelope?.Subject ?? "";
+			if (!subject.StartsWith(SubjectPrefix)) return false;
+			var name = subject[SubjectPrefix.Length..];
+			if (name == cloudName) return true;
+			if (name.StartsWith($"{cloudName}<"))
+			{
+				var match = ChunkAnyRegex.Match(name);
+				return match.Success && match.Groups[1].Value == cloudName;
+			}
+			return false;
+		}).ToList();
+	}
+
+	/// <summary>
+	/// 根据全量摘要重建文件夹缓存
+	/// </summary>
+	private void RebuildCacheFromSummaries(string folderPath, IReadOnlyList<IMessageSummary> summaries)
+	{
+		try
+		{
+			var files = new Dictionary<string, Models.FileCacheEntry>();
+			uint? uidValidity = null;
+			uint uidNext = 0;
+
+			foreach (var m in summaries)
+			{
+				uidValidity ??= m.UniqueId.Validity;
+				if (m.UniqueId.Id >= uidNext)
+					uidNext = m.UniqueId.Id + 1;
+
+				var subject = m.Envelope?.Subject ?? "";
+				if (!subject.StartsWith(SubjectPrefix)) continue;
+
+				var (name, chunkIndex, _, _) = ParseSubject(subject);
+				if (string.IsNullOrEmpty(name)) continue;
+
+				if (!files.TryGetValue(name, out var entry))
+				{
+					entry = new Models.FileCacheEntry();
+					files[name] = entry;
+				}
+				entry.Chunks.Add(new Models.ChunkCacheEntry
+				{
+					Uid = m.UniqueId.Id,
+					Index = chunkIndex
+				});
+			}
+
+			if (uidValidity == null) return;
+
+			// 排序
+			foreach (var entry in files.Values)
+				entry.Chunks.Sort((a, b) => a.Index.CompareTo(b.Index));
+
+			_cache.SetFolder(folderPath, new Models.FolderCache
+			{
+				UidValidity = uidValidity.Value,
+				UidNext = uidNext,
+				Files = files
+			});
+
+			_logger.LogDebug("Cache rebuilt for folder: {Folder} ({FileCount} files)", folderPath, files.Count);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex, "Failed to rebuild cache for {Folder}", folderPath);
 		}
 	}
 
@@ -461,7 +620,12 @@ public class DiskService
 		cloudPath = NormalizeCloudPath(cloudPath) + "/";
 		localPath = localPath.Replace('\\', '/').TrimEnd('/') + "/";
 
-		var files = await ListFilesAsync(folderPath, deleteMissing: false, ct: ct);
+		var files = await ListFilesAsync(folderPath, deleteMissing: false,
+			onProgress: (current, total) =>
+			{
+				onProgress?.Invoke(current, total, "");
+			},
+			ct: ct);
 		var matching = files.Where(f => f.Name.StartsWith(cloudPath)).ToList();
 		var total = matching.Count;
 		var current = 0;
@@ -472,7 +636,7 @@ public class DiskService
 			if (string.IsNullOrEmpty(relativePath)) continue;
 
 			current++;
-			onProgress?.Invoke(current, total, file.Name);
+			onProgress?.Invoke(current, total, relativePath);
 
 			var localFile = localPath + relativePath.Replace('/', Path.DirectorySeparatorChar);
 			var localDir = Path.GetDirectoryName(localFile);
@@ -481,7 +645,14 @@ public class DiskService
 
 			try
 			{
-				await DownloadFileAsync(file.Name, folderPath, localFile, ct);
+				await DownloadFileAsync(file.Name, folderPath, localFile, ct,
+					onProgress: (chunkIdx, chunkTotal) =>
+					{
+						var name = chunkTotal > 1
+							? $"{relativePath} ({chunkIdx}/{chunkTotal})"
+							: relativePath;
+						onProgress?.Invoke(current, total, name);
+					});
 			}
 			catch (Exception ex)
 			{

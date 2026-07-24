@@ -18,7 +18,7 @@
 | `-l` | `<folder>` | 列出云端的文件 |
 | `-c` | `<folder>` | 清理不完整的分卷文件 |
 | `-u` | `<folder> <local> <cloud>` | 上传单个文件 |
-| `-d` | `<folder> <local> <cloud>` | 下载单个文件 |
+| `-d` | `<folder> <local> <cloud>` | 下载单个文件（优先使用缓存，跳过遍历） |
 | `-uf` | `<folder> <local> <cloud>` | 上传整个文件夹 |
 | `-df` | `<folder> <local> <cloud>` | 下载整个文件夹 |
 
@@ -78,3 +78,12 @@ maildisk -c mydisk
 | `address` | string | 发件邮箱地址 |
 | `block` | string | 单个邮件最大附件大小（MiB） |
 | `skipSslVerify` | bool | 是否跳过 SSL 证书验证（默认 false） |
+
+## 缓存文件 cache.json
+
+程序会在可执行文件同目录自动生成 `cache.json`，缓存文件夹的文件索引（文件名 → UID 映射）。
+
+- 首次下载或 `-l` 列出文件时自动创建
+- 后续下载同一文件夹的文件直接按 UID 取，速度大幅提升
+- 上传文件后缓存自动失效，下次访问时重建
+- 删除 `cache.json` 不影响功能，只是恢复全量遍历

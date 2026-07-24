@@ -24,13 +24,22 @@ internal static class DownloadFolderCommand
 			{
 				var task = ctx.AddTask(Locale.DF_DownloadingStatus, autoStart: true);
 				task.IsIndeterminate();
+				var lastTotal = 0;
 
 				await disk.DownloadFolderAsync(cloudPath, folderPath, localFolder,
 					onProgress: (current, total, name) =>
 					{
-						task.MaxValue(total);
+						if (total != lastTotal)
+						{
+							task.MaxValue(total);
+							task.IsIndeterminate(false);
+							lastTotal = total;
+						}
 						task.Value(current);
-						task.Description = $"{Locale.DF_DownloadingStatus} [dim]{Markup.Escape(name)}[/]";
+						if (string.IsNullOrEmpty(name))
+							task.Description = $"{Locale.DL_Refreshing} [cyan]{Markup.Escape(folderPath)}[/] ({current}/{total})";
+						else
+							task.Description = $"{Locale.DF_DownloadingStatus} [dim]{Markup.Escape(name)}[/] ({current}/{total})";
 					});
 				task.Description = Locale.DF_Done;
 				task.Value(task.MaxValue);

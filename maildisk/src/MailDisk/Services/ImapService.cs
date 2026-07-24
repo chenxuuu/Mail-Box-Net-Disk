@@ -197,6 +197,49 @@ public class ImapService
 	}
 
 	/// <summary>
+	/// 获取文件夹状态（UidValidity, UidNext, 邮件总数）
+	/// </summary>
+	public async Task<(uint UidValidity, uint UidNext, int Count)> StatusAsync(
+		string folderPath, CancellationToken ct = default)
+	{
+		var client = await ConnectAsync(ct);
+		try
+		{
+			var folder = await client.GetFolderAsync(folderPath, ct);
+			await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+			return (folder.UidValidity, folder.UidNext?.Id ?? 0, folder.Count);
+		}
+		finally
+		{
+			await client.DisconnectAsync(true, ct);
+		}
+	}
+
+	/// <summary>
+	/// 按 UniqueId 批量获取邮件摘要
+	/// </summary>
+	public async Task<IReadOnlyList<IMessageSummary>> FetchByUidsAsync(
+		string folderPath, IList<UniqueId> uids, CancellationToken ct = default)
+	{
+		if (uids.Count == 0)
+			return Array.Empty<IMessageSummary>();
+
+		var client = await ConnectAsync(ct);
+		try
+		{
+			var folder = await client.GetFolderAsync(folderPath, ct);
+			await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+			var result = await folder.FetchAsync(uids,
+				MessageSummaryItems.Full | MessageSummaryItems.UniqueId, ct);
+			return result.ToList();
+		}
+		finally
+		{
+			await client.DisconnectAsync(true, ct);
+		}
+	}
+
+	/// <summary>
 	/// 将文件夹中未读邮件全部标记为已读
 	/// </summary>
 	public async Task MarkAllAsSeenAsync(string folderPath, CancellationToken ct = default)

@@ -85,6 +85,7 @@ public static class Locale
 	// ─── Download ───
 	public static string DL_NoAngleBracket => IsZh ? "错误：文件名不能包含 '<'" : "Error: file name cannot contain '<'";
 	public static string DL_Downloading => IsZh ? "正在下载" : "Downloading";
+	public static string DL_Refreshing => IsZh ? "正在刷新文件索引" : "Refreshing file index";
 	public static string DL_Done => IsZh ? "下载完成" : "Download complete";
 
 	// ─── Upload Folder ───
