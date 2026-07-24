@@ -19,17 +19,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
       - name: environment prepare
         run: |
           sudo apt-get update
-          sudo apt-get install -y apt-transport-https
-          sudo apt-get update
-          sudo apt-get install -y dotnet-sdk-5.0
           sudo apt-get install -y p7zip-full
       - name: build
         run: |
-          cd maildisk
+          cd maildisk/src/MailDisk
           dotnet publish -r win-x86 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
           dotnet publish -r win-arm -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true
@@ -41,30 +41,31 @@ jobs:
       - name: create packages
         run: |
           mkdir maildisk-pkg
-          mv maildisk/maildisk/bin/Debug/net5.0/win-x86/publish/* maildisk-pkg/
+          PUB=maildisk/src/MailDisk/bin/Release/net10.0
+          mv $PUB/win-x86/publish/* maildisk-pkg/
           7z a win-x86.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/win-x64/publish/* maildisk-pkg/
+          mv $PUB/win-x64/publish/* maildisk-pkg/
           7z a win-x64.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/win-arm/publish/* maildisk-pkg/
+          mv $PUB/win-arm/publish/* maildisk-pkg/
           7z a win-arm.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/win-arm64/publish/* maildisk-pkg/
+          mv $PUB/win-arm64/publish/* maildisk-pkg/
           7z a win-arm64.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/linux-x64/publish/* maildisk-pkg/
+          mv $PUB/linux-x64/publish/* maildisk-pkg/
           7z a linux-x64.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm/publish/* maildisk-pkg/
+          mv $PUB/linux-arm/publish/* maildisk-pkg/
           7z a linux-arm.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/linux-arm64/publish/* maildisk-pkg/
+          mv $PUB/linux-arm64/publish/* maildisk-pkg/
           7z a linux-arm64.7z maildisk-pkg/*
           rm maildisk-pkg/*
-          mv maildisk/maildisk/bin/Debug/net5.0/osx-x64/publish/* maildisk-pkg/
+          mv $PUB/osx-x64/publish/* maildisk-pkg/
           7z a osx-x64.7z maildisk-pkg/*
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: artifact
           path: |
